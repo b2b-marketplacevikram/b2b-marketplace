@@ -5,6 +5,7 @@ WORKDIR /app
 
 # Copy pom files first for dependency caching
 COPY backend/pom.xml ./backend/
+COPY backend/common/pom.xml ./backend/common/
 COPY backend/user-service/pom.xml ./backend/user-service/
 COPY backend/product-service/pom.xml ./backend/product-service/
 COPY backend/order-service/pom.xml ./backend/order-service/
@@ -12,6 +13,9 @@ COPY backend/payment-service/pom.xml ./backend/payment-service/
 COPY backend/messaging-service/pom.xml ./backend/messaging-service/
 COPY backend/notification-service/pom.xml ./backend/notification-service/
 COPY backend/email-service/pom.xml ./backend/email-service/
+COPY backend/cart-service/pom.xml ./backend/cart-service/
+COPY backend/admin-service/pom.xml ./backend/admin-service/
+COPY backend/search-service/pom.xml ./backend/search-service/
 
 # Download dependencies
 WORKDIR /app/backend
