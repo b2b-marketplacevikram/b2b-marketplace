@@ -22,6 +22,28 @@ services:
       timeout: 5s
       retries: 5
 
+  # Apache Solr - Search Engine
+  solr:
+    image: solr:9.4
+    container_name: b2b-solr
+    ports:
+      - "8983:8983"
+    volumes:
+      - solr_data:/var/solr
+      - ./solr-config:/opt/solr/server/solr/configsets/b2b_config/conf
+    environment:
+      SOLR_JAVA_MEM: "-Xms512m -Xmx512m"
+    command:
+      - solr-precreate
+      - products
+    networks:
+      - b2b-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8983/solr/admin/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
   # User Service
   user-service:
     build:
@@ -107,6 +129,118 @@ services:
     networks:
       - b2b-network
 
+  # Cart Service
+  cart-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      args:
+        SERVICE_NAME: cart-service
+    container_name: b2b-cart-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/b2b_marketplace
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      SERVER_PORT: 8085
+    ports:
+      - "8085:8085"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - b2b-network
+
+  # Notification Service
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      args:
+        SERVICE_NAME: notification-service
+    container_name: b2b-notification-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/b2b_marketplace
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      SERVER_PORT: 8086
+    ports:
+      - "8086:8086"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - b2b-network
+
+  # Email Service
+  email-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      args:
+        SERVICE_NAME: email-service
+    container_name: b2b-email-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/b2b_marketplace
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: ${EMAIL_USERNAME:-b2bmarketplace9@gmail.com}
+      SPRING_MAIL_PASSWORD: ${EMAIL_PASSWORD}
+      SERVER_PORT: 8087
+    ports:
+      - "8087:8087"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - b2b-network
+
+  # Admin Service
+  admin-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      args:
+        SERVICE_NAME: admin-service
+    container_name: b2b-admin-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/b2b_marketplace
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      SERVER_PORT: 8088
+    ports:
+      - "8088:8088"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - b2b-network
+
+  # Search Service (Solr-based)
+  search-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      args:
+        SERVICE_NAME: search-service
+    container_name: b2b-search-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/b2b_marketplace
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      SPRING_DATA_SOLR_HOST: http://solr:8983/solr
+      SERVER_PORT: 8090
+    ports:
+      - "8090:8090"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      solr:
+        condition: service_started
+    networks:
+      - b2b-network
+
   # Messaging Service
   messaging-service:
     build:
@@ -139,6 +273,8 @@ services:
     depends_on:
       - user-service
       - product-service
+      - cart-service
+      - search-service
     networks:
       - b2b-network
 
@@ -148,3 +284,4 @@ networks:
 
 volumes:
   mysql_data:
+  solr_data:
