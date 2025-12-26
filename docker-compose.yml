@@ -267,6 +267,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+      args:
+        VITE_USER_SERVICE_URL: ${VITE_USER_SERVICE_URL:-http://localhost:8081/api}
+        VITE_PRODUCT_SERVICE_URL: ${VITE_PRODUCT_SERVICE_URL:-http://localhost:8082/api}
+        VITE_ORDER_SERVICE_URL: ${VITE_ORDER_SERVICE_URL:-http://localhost:8083/api}
+        VITE_PAYMENT_SERVICE_URL: ${VITE_PAYMENT_SERVICE_URL:-http://localhost:8084/api}
+        VITE_SEARCH_SERVICE_URL: ${VITE_SEARCH_SERVICE_URL:-http://localhost:8090/api}
+        VITE_EMAIL_SERVICE_URL: ${VITE_EMAIL_SERVICE_URL:-http://localhost:8087/api}
+        VITE_ADMIN_SERVICE_URL: ${VITE_ADMIN_SERVICE_URL:-http://localhost:8088/api}
     container_name: b2b-frontend
     ports:
       - "80:80"
