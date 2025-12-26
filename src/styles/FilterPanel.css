@@ -1,0 +1,76 @@
+/* Filter Panel */
+.filter-panel {
+  background: white;
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.filter-header h3 {
+  font-size: 1.3rem;
+}
+
+.reset-btn {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.filter-section {
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.filter-section:last-child {
+  border-bottom: none;
+}
+
+.filter-section h4 {
+  margin-bottom: 15px;
+  font-size: 1rem;
+}
+
+.filter-select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.range-inputs input {
+  flex: 1;
+  padding: 8px;
+}
+
+.rating-filters, .checkbox-option {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rating-option, .checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.rating-option input, .checkbox-option input {
+  width: auto;
+  cursor: pointer;
+}

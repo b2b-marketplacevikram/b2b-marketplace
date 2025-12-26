@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            background: #333;
+            color: #999;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            border-radius: 0 0 10px 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Welcome to B2B Marketplace!</h1>
+    </div>
+    <div class="content">
+        <p>Dear <strong th:text="${name}">User</strong>,</p>
+        
+        <p>Thank you for registering with B2B Marketplace! We're excited to have you join our global community of buyers and suppliers.</p>
+        
+        <p>To activate your account and start exploring thousands of products, please click the button below:</p>
+        
+        <p style="text-align: center;">
+            <a th:href="${activationLink}" class="button">Activate Your Account</a>
+        </p>
+        
+        <p>Or copy and paste this link in your browser:</p>
+        <p style="word-break: break-all; color: #667eea;" th:text="${activationLink}">activation link</p>
+        
+        <p><strong>What's Next?</strong></p>
+        <ul>
+            <li>Complete your profile</li>
+            <li>Browse our product catalog</li>
+            <li>Connect with verified suppliers</li>
+            <li>Place your first order</li>
+        </ul>
+        
+        <p>If you have any questions, feel free to contact our support team at <span th:text="${supportEmail}">support@b2bmarketplace.com</span>.</p>
+        
+        <p>Best regards,<br>
+        <strong>The B2B Marketplace Team</strong></p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2024 B2B Marketplace. All rights reserved.</p>
+        <p>This is an automated message. Please do not reply to this email.</p>
+    </div>
+</body>
+</html>

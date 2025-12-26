@@ -1,0 +1,40 @@
+# Protected words - These words will not be stemmed
+# Add product-specific terms that should not be stemmed
+
+# Brand names (examples)
+Samsung
+Apple
+Sony
+Dell
+HP
+Lenovo
+LG
+Philips
+Bosch
+Siemens
+
+# Technical terms
+LED
+LCD
+USB
+HDMI
+WiFi
+Bluetooth
+NFC
+GPS
+RAM
+SSD
+HDD
+
+# Units
+MOQ
+SKU
+OEM
+ODM
+FOB
+CIF
+EXW
+
+# B2B specific terms
+RFQ
+PO

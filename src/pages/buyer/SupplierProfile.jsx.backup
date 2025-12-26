@@ -1,0 +1,217 @@
+import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
+import ProductCard from '../../components/ProductCard'
+import MessageButton from '../../components/MessageButton'
+import { useAuth } from '../../context/AuthContext'
+import '../../styles/SupplierProfile.css'
+
+function SupplierProfile() {
+  const { id } = useParams()
+  const { user } = useAuth()
+  const [supplier, setSupplier] = useState(null)
+  const [activeTab, setActiveTab] = useState('products')
+
+  useEffect(() => {
+    // Simulate API call
+    setSupplier({
+      id: parseInt(id),
+      name: 'TechLight Co.',
+      logo: '/images/supplier-logo.jpg',
+      banner: '/images/supplier-banner.jpg',
+      verified: true,
+      rating: 4.7,
+      reviews: 1250,
+      responseTime: '< 24 hours',
+      location: 'Shenzhen, China',
+      established: 2010,
+      employees: '200-500',
+      description: 'TechLight Co. is a leading manufacturer of industrial LED lighting solutions. With over 13 years of experience, we specialize in energy-efficient lighting for commercial and industrial applications.',
+      certifications: ['ISO 9001', 'CE', 'RoHS', 'UL', 'FCC'],
+      products: [
+        { id: 1, name: 'Industrial LED Lights', price: 25.99, moq: 100, image: '/images/led-lights.jpg', rating: 4.5 },
+        { id: 2, name: 'LED Strip Lights', price: 15.50, moq: 200, image: '/images/led-strips.jpg', rating: 4.6 },
+        { id: 3, name: 'LED Bulbs', price: 8.99, moq: 500, image: '/images/led-bulbs.jpg', rating: 4.4 },
+        { id: 4, name: 'LED Panel Lights', price: 35.00, moq: 50, image: '/images/led-panels.jpg', rating: 4.7 },
+      ],
+      contact: {
+        email: 'sales@techlight.com',
+        phone: '+86 755 1234 5678',
+        website: 'www.techlight.com',
+        address: 'Building A, Tech Park, Shenzhen, China'
+      },
+      statistics: {
+        totalOrders: 5000,
+        repeatCustomers: '85%',
+        onTimeDelivery: '95%',
+        responseRate: '98%'
+      }
+    })
+  }, [id])
+
+  const handleContactSupplier = () => {
+    alert('Contact form would open here')
+  }
+
+  if (!supplier) {
+    return <div className="loading">Loading supplier profile...</div>
+  }
+
+  return (
+    <div className="supplier-profile-page">
+      {/* Banner Section */}
+      <div className="supplier-banner">
+        <img src={supplier.banner} alt={supplier.name} />
+      </div>
+
+      {/* Supplier Header */}
+      <div className="supplier-header">
+        <div className="supplier-info">
+          <img src={supplier.logo} alt={supplier.name} className="supplier-logo" />
+          <div className="supplier-details">
+            <h1>
+              {supplier.name}
+              {supplier.verified && <span className="verified-badge">✓ Verified</span>}
+            </h1>
+            <div className="supplier-meta">
+              <span className="rating">⭐ {supplier.rating} ({supplier.reviews} reviews)</span>
+              <span>📍 {supplier.location}</span>
+              <span>⏱️ Response: {supplier.responseTime}</span>
+            </div>
+            <div className="supplier-stats">
+              <div className="stat">
+                <strong>{supplier.statistics.totalOrders}+</strong>
+                <span>Total Orders</span>
+              </div>
+              <div className="stat">
+                <strong>{supplier.statistics.repeatCustomers}</strong>
+                <span>Repeat Customers</span>
+              </div>
+              <div className="stat">
+                <strong>{supplier.statistics.onTimeDelivery}</strong>
+                <span>On-Time Delivery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="supplier-actions">
+          {user && user.type !== 'supplier' && (
+            <MessageButton 
+              userId={supplier.id} 
+              userName={supplier.name}
+              className="btn-message"
+            />
+          )}
+          <button className="btn-primary" onClick={handleContactSupplier}>
+            Contact Supplier
+          </button>
+          <button className="btn-secondary">Request Quote</button>
+        </div>
+      </div>
+
+      {/* Content Tabs */}
+      <div className="supplier-content">
+        <div className="tab-headers">
+          <button
+            className={activeTab === 'products' ? 'active' : ''}
+            onClick={() => setActiveTab('products')}
+          >
+            Products ({supplier.products.length})
+          </button>
+          <button
+            className={activeTab === 'about' ? 'active' : ''}
+            onClick={() => setActiveTab('about')}
+          >
+            About Company
+          </button>
+          <button
+            className={activeTab === 'certifications' ? 'active' : ''}
+            onClick={() => setActiveTab('certifications')}
+          >
+            Certifications
+          </button>
+          <button
+            className={activeTab === 'contact' ? 'active' : ''}
+            onClick={() => setActiveTab('contact')}
+          >
+            Contact
+          </button>
+        </div>
+
+        <div className="tab-content">
+          {activeTab === 'products' && (
+            <div className="products-tab">
+              <div className="products-grid">
+                {supplier.products.map(product => (
+                  <ProductCard key={product.id} product={{...product, supplier: supplier.name}} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'about' && (
+            <div className="about-tab">
+              <h2>About {supplier.name}</h2>
+              <p>{supplier.description}</p>
+              <div className="company-info">
+                <div className="info-item">
+                  <strong>Year Established:</strong>
+                  <span>{supplier.established}</span>
+                </div>
+                <div className="info-item">
+                  <strong>Number of Employees:</strong>
+                  <span>{supplier.employees}</span>
+                </div>
+                <div className="info-item">
+                  <strong>Location:</strong>
+                  <span>{supplier.location}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'certifications' && (
+            <div className="certifications-tab">
+              <h2>Certifications & Quality</h2>
+              <div className="certifications-grid">
+                {supplier.certifications.map((cert, index) => (
+                  <div key={index} className="certification-card">
+                    <div className="cert-icon">📜</div>
+                    <h3>{cert}</h3>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'contact' && (
+            <div className="contact-tab">
+              <h2>Contact Information</h2>
+              <div className="contact-info">
+                <div className="contact-item">
+                  <strong>Email:</strong>
+                  <a href={`mailto:${supplier.contact.email}`}>{supplier.contact.email}</a>
+                </div>
+                <div className="contact-item">
+                  <strong>Phone:</strong>
+                  <a href={`tel:${supplier.contact.phone}`}>{supplier.contact.phone}</a>
+                </div>
+                <div className="contact-item">
+                  <strong>Website:</strong>
+                  <a href={`https://${supplier.contact.website}`} target="_blank" rel="noopener noreferrer">
+                    {supplier.contact.website}
+                  </a>
+                </div>
+                <div className="contact-item">
+                  <strong>Address:</strong>
+                  <span>{supplier.contact.address}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default SupplierProfile

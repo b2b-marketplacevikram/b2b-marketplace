@@ -1,0 +1,64 @@
+# B2B Marketplace Product Synonyms
+# Format: synonym1,synonym2,synonym3 => preferred_term
+# Or: synonym1,synonym2 (bidirectional)
+
+# Electronics
+laptop,notebook,portable computer
+phone,smartphone,mobile,cellphone
+tablet,ipad,tab
+computer,pc,desktop
+monitor,display,screen
+keyboard,kb
+mouse,pointing device
+headphone,headset,earphone
+speaker,loudspeaker,audio speaker
+camera,webcam,camcorder
+tv,television,led tv,lcd tv
+printer,laser printer,inkjet printer
+router,wifi router,wireless router
+charger,power adapter,ac adapter
+
+# Office Supplies
+pen,ballpoint pen,writing instrument
+pencil,mechanical pencil
+notebook,notepad,writing pad
+folder,file folder,binder
+stapler,stapling machine
+tape,adhesive tape,sticky tape
+
+# Machinery
+machine,equipment,apparatus
+motor,engine
+pump,water pump,hydraulic pump
+generator,power generator
+compressor,air compressor
+conveyor,conveyor belt
+
+# Materials
+steel,metal,iron
+aluminum,aluminium
+plastic,polymer
+rubber,elastomer
+glass,tempered glass
+wood,timber,lumber
+
+# Packaging
+box,carton,container
+bag,pouch,sack
+bottle,jar,container
+wrapper,wrapping,packaging
+
+# Measurements
+kg,kilogram,kilograms
+lb,pound,pounds
+meter,metre,m
+inch,in,inches
+cm,centimeter,centimeters
+
+# Business Terms
+wholesale,bulk,bulk order
+retail,single unit
+sample,trial
+custom,customized,bespoke
+oem,original equipment manufacturer
+odm,original design manufacturer

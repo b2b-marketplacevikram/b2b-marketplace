@@ -1,0 +1,146 @@
+/* Order Management */
+.order-management-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 10px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  overflow-x: auto;
+}
+
+.filter-tabs button {
+  padding: 12px 24px;
+  border: none;
+  background: var(--light-color);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+
+.filter-tabs button.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.orders-content {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 30px;
+}
+
+.orders-table-container {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 30px;
+}
+
+.buyer-contact {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.order-details-panel {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  height: fit-content;
+  position: sticky;
+  top: 140px;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.panel-header h2 {
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.panel-content {
+  padding: 25px;
+}
+
+.detail-section {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.detail-section:last-child {
+  border-bottom: none;
+}
+
+.detail-section h3 {
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.detail-section p {
+  margin-bottom: 8px;
+  line-height: 1.8;
+}
+
+.order-items {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px;
+  background: var(--light-color);
+  border-radius: 8px;
+}
+
+.order-total {
+  padding: 15px;
+  background: var(--light-color);
+  border-radius: 8px;
+  text-align: right;
+  margin-top: 15px;
+}
+
+.detail-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+@media (max-width: 1100px) {
+  .orders-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .order-details-panel {
+    position: static;
+    max-height: none;
+  }
+}

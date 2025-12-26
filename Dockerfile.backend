@@ -1,0 +1,45 @@
+# Build stage
+FROM maven:3.9-eclipse-temurin-17 AS build
+
+WORKDIR /app
+
+# Copy pom files first for dependency caching
+COPY backend/pom.xml ./backend/
+COPY backend/user-service/pom.xml ./backend/user-service/
+COPY backend/product-service/pom.xml ./backend/product-service/
+COPY backend/order-service/pom.xml ./backend/order-service/
+COPY backend/payment-service/pom.xml ./backend/payment-service/
+COPY backend/messaging-service/pom.xml ./backend/messaging-service/
+COPY backend/notification-service/pom.xml ./backend/notification-service/
+COPY backend/email-service/pom.xml ./backend/email-service/
+
+# Download dependencies
+WORKDIR /app/backend
+RUN mvn dependency:go-offline -B || true
+
+# Copy source code
+COPY backend/ ./
+
+# Build all services
+RUN mvn clean package -DskipTests
+
+# Runtime stage - User Service
+FROM eclipse-temurin:17-jre-alpine
+
+WORKDIR /app
+
+# Add non-root user
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+# Copy the built jar
+ARG SERVICE_NAME=user-service
+COPY --from=build /app/backend/${SERVICE_NAME}/target/*.jar app.jar
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+    CMD wget -q --spider http://localhost:8080/actuator/health || exit 1
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

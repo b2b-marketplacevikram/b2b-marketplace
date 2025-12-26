@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  solr:
+    image: solr:8.11.1
+    container_name: b2b-solr
+    ports:
+      - "8983:8983"
+    volumes:
+      - solr_data:/var/solr
+      - ./solr-config:/opt/solr/server/solr/configsets/b2b_products
+    environment:
+      - SOLR_JAVA_MEM=-Xms512m -Xmx1024m
+    command:
+      - solr-precreate
+      - products
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:8983/solr/admin/cores?action=STATUS | grep -q 'products'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - b2b-network
+
+networks:
+  b2b-network:
+    driver: bridge
+
+volumes:
+  solr_data:
+    driver: local

@@ -1,0 +1,60 @@
+.bundle-list-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.bundle-list-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.bundle-list-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.bundle-list-header p {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+}
+
+.bundles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.no-bundles {
+  text-align: center;
+  padding: 80px 20px;
+  background: #f9f9f9;
+  border-radius: 12px;
+}
+
+.no-bundles-icon {
+  font-size: 80px;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.no-bundles h3 {
+  font-size: 24px;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.no-bundles p {
+  color: #666;
+  margin: 0;
+}
+
+.loading {
+  text-align: center;
+  padding: 80px 20px;
+  font-size: 18px;
+  color: #666;
+}

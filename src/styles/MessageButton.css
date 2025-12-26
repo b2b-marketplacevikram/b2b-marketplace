@@ -1,0 +1,64 @@
+.message-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.message-button:hover {
+    background-color: #218838;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.message-button:active {
+    transform: translateY(0);
+}
+
+.message-icon {
+    font-size: 18px;
+}
+
+.message-text {
+    font-size: 14px;
+}
+
+/* Compact variant */
+.message-button.compact {
+    padding: 8px 16px;
+    font-size: 13px;
+}
+
+.message-button.compact .message-icon {
+    font-size: 16px;
+}
+
+/* Icon only variant */
+.message-button.icon-only {
+    padding: 10px;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+}
+
+.message-button.icon-only .message-text {
+    display: none;
+}
+
+/* Secondary variant */
+.message-button.secondary {
+    background-color: #6c757d;
+}
+
+.message-button.secondary:hover {
+    background-color: #5a6268;
+    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+}

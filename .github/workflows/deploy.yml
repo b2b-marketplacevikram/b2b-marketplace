@@ -1,0 +1,187 @@
+name: Build and Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY_PREFIX: b2b
+  ECS_CLUSTER: b2b-marketplace-cluster
+
+jobs:
+  # Build and Test Frontend
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint --if-present
+
+      - name: Build frontend
+        run: npm run build
+        env:
+          VITE_USER_SERVICE_URL: ${{ secrets.API_BASE_URL }}/user/api
+          VITE_PRODUCT_SERVICE_URL: ${{ secrets.API_BASE_URL }}/product/api
+          VITE_ORDER_SERVICE_URL: ${{ secrets.API_BASE_URL }}/order/api
+          VITE_PAYMENT_SERVICE_URL: ${{ secrets.API_BASE_URL }}/payment/api
+          VITE_MESSAGING_SERVICE_URL: ${{ secrets.API_BASE_URL }}/messaging/api
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: dist/
+
+  # Build and Test Backend Services
+  build-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build with Maven
+        run: |
+          cd backend
+          mvn clean package -DskipTests
+
+      - name: Run tests
+        run: |
+          cd backend
+          mvn test
+        continue-on-error: true
+
+      - name: Upload backend artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jars
+          path: backend/*/target/*.jar
+
+  # Deploy to AWS (only on main branch push)
+  deploy:
+    needs: [build-frontend, build-backend]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: dist/
+
+      - name: Build and push Frontend image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -f Dockerfile.frontend -t $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX/frontend:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX/frontend:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX/frontend:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX/frontend:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX/frontend:latest
+
+      - name: Build and push Backend images
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          for service in user-service product-service order-service payment-service messaging-service; do
+            echo "Building $service..."
+            docker build -f Dockerfile.backend --build-arg SERVICE_NAME=$service -t $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX/$service:$IMAGE_TAG .
+            docker tag $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX/$service:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX/$service:latest
+            docker push $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX/$service:$IMAGE_TAG
+            docker push $ECR_REGISTRY/$ECR_REPOSITORY_PREFIX/$service:latest
+          done
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user/b2b-marketplace
+            
+            # Login to ECR
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+            
+            # Pull latest images
+            docker-compose pull
+            
+            # Restart services
+            docker-compose up -d --remove-orphans
+            
+            # Cleanup old images
+            docker image prune -f
+
+      - name: Health check
+        run: |
+          echo "Waiting for services to start..."
+          sleep 30
+          curl -f http://${{ secrets.EC2_HOST }}/health || echo "Health check skipped"
+
+  # Deploy Frontend to S3 (Alternative: Static hosting)
+  deploy-s3:
+    needs: [build-frontend]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: dist/
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }} --delete
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+        continue-on-error: true

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { color: green; }
+        .error { color: red; }
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+    </style>
+</head>
+<body>
+    <h1>B2B Marketplace - Debug Page</h1>
+    
+    <div class="test-section">
+        <h2>Backend Services Status</h2>
+        <div id="services-status">Checking...</div>
+        <button onclick="checkServices()">Recheck Services</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Frontend Status</h2>
+        <div id="frontend-status">
+            <p class="success">✓ This page loaded successfully</p>
+            <p id="react-check">Checking React app...</p>
+        </div>
+        <button onclick="location.href='http://localhost:3000'">Open React App</button>
+        <button onclick="location.reload()">Reload Page</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Browser Console</h2>
+        <p>Press F12 to open Developer Tools and check the Console tab for errors</p>
+    </div>
+
+    <script>
+        async function checkServices() {
+            const services = [
+                { name: 'User Service', url: 'http://localhost:8081/api/auth/health' },
+                { name: 'Product Service', url: 'http://localhost:8082/api/products' },
+                { name: 'Order Service', url: 'http://localhost:8083/api/orders/health' },
+                { name: 'Payment Service', url: 'http://localhost:8084/api/payments/health' },
+                { name: 'Cart Service', url: 'http://localhost:8085/api/cart/health' }
+            ];
+            
+            const statusDiv = document.getElementById('services-status');
+            statusDiv.innerHTML = '<p>Checking services...</p>';
+            
+            let html = '';
+            for (const service of services) {
+                try {
+                    const response = await fetch(service.url, { 
+                        method: 'GET',
+                        mode: 'cors'
+                    });
+                    if (response.ok) {
+                        html += `<p class="success">✓ ${service.name} is running</p>`;
+                    } else {
+                        html += `<p class="error">✗ ${service.name} returned ${response.status}</p>`;
+                    }
+                } catch (error) {
+                    html += `<p class="error">✗ ${service.name} is not accessible: ${error.message}</p>`;
+                }
+            }
+            statusDiv.innerHTML = html;
+        }
+        
+        // Check services on load
+        checkServices();
+        
+        // Check if React app is accessible
+        fetch('http://localhost:3000')
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById('react-check').innerHTML = '<p class="success">✓ React dev server is responding</p>';
+                } else {
+                    document.getElementById('react-check').innerHTML = '<p class="error">✗ React dev server returned error</p>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('react-check').innerHTML = '<p class="error">✗ React dev server not accessible</p>';
+            });
+    </script>
+</body>
+</html>

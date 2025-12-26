@@ -1,0 +1,282 @@
+.bank-transfer-details {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #e0e0e0;
+  margin-top: 16px;
+}
+
+.bank-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.bank-icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #1a73e8, #4285f4);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.bank-title h3 {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.bank-title p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.amount-box {
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  border: 1px solid #a5d6a7;
+}
+
+.amount-label {
+  font-size: 14px;
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.amount-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1b5e20;
+}
+
+.bank-details-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  gap: 16px;
+}
+
+.detail-row:hover {
+  background: #f0f0f0;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.detail-value {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.detail-value span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.detail-value .mono {
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: 0.5px;
+}
+
+.copy-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #666;
+  white-space: nowrap;
+}
+
+.copy-btn:hover {
+  border-color: #ff6b35;
+  color: #ff6b35;
+}
+
+.copy-btn.copied {
+  background: #4caf50;
+  border-color: #4caf50;
+  color: #fff;
+}
+
+.upi-row {
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  border: 1px solid #ffcc80;
+}
+
+.reference-box {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.reference-icon {
+  font-size: 24px;
+}
+
+.reference-content {
+  flex: 1;
+}
+
+.reference-content strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #856404;
+  font-size: 14px;
+}
+
+.reference-number {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: 2px dashed #ffc107;
+}
+
+.reference-number span {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  letter-spacing: 1px;
+}
+
+.copy-all-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #ff6b35, #ff8c5a);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: 24px;
+}
+
+.copy-all-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+}
+
+.copy-all-btn.copied {
+  background: linear-gradient(135deg, #4caf50, #66bb6a);
+}
+
+.bank-instructions {
+  background: #f5f5f5;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.bank-instructions h4 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: #333;
+}
+
+.bank-instructions ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.bank-instructions li {
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.bank-instructions li:last-child {
+  margin-bottom: 0;
+}
+
+.bank-instructions li strong {
+  color: #ff6b35;
+}
+
+.bank-note {
+  background: #e3f2fd;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid #90caf9;
+}
+
+.bank-note p {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #1565c0;
+}
+
+.bank-note p:last-child {
+  margin-bottom: 0;
+}
+
+.bank-note a {
+  color: #1565c0;
+  font-weight: 600;
+}
+
+@media (max-width: 576px) {
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .detail-value {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .amount-box {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+  
+  .reference-box {
+    flex-direction: column;
+  }
+}

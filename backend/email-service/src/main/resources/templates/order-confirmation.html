@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .order-summary {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .order-info {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .items-table th, .items-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .items-table th {
+            background: #667eea;
+            color: white;
+        }
+        .total-row {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #667eea;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            background: #333;
+            color: #999;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            border-radius: 0 0 10px 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✓ Order Confirmed!</h1>
+        <p>Order #<span th:text="${orderNumber}">12345</span></p>
+    </div>
+    <div class="content">
+        <p>Dear <strong th:text="${buyerName}">Customer</strong>,</p>
+        
+        <p>Thank you for your order! We're pleased to confirm that we've received your order and it's being processed.</p>
+        
+        <div class="order-summary">
+            <h3>Order Details</h3>
+            <div class="order-info">
+                <span>Order Number:</span>
+                <strong th:text="${orderNumber}">12345</strong>
+            </div>
+            <div class="order-info">
+                <span>Order Date:</span>
+                <strong th:text="${orderDate}">Dec 02, 2024 10:30 AM</strong>
+            </div>
+            <div class="order-info">
+                <span>Payment Method:</span>
+                <strong th:text="${paymentMethod}">Credit Card</strong>
+            </div>
+        </div>
+        
+        <h3>Items Ordered</h3>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${items}">
+                    <td th:text="${item.productName}">Product Name</td>
+                    <td th:text="${item.quantity}">10</td>
+                    <td th:text="${currency} + ' ' + ${item.unitPrice != null ? #numbers.formatDecimal(item.unitPrice, 1, 2) : '0.00'}">$99.99</td>
+                    <td th:text="${currency} + ' ' + ${item.totalPrice != null ? #numbers.formatDecimal(item.totalPrice, 1, 2) : '0.00'}">$999.90</td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="3" style="text-align: right;">Total Amount:</td>
+                    <td th:text="${currency} + ' ' + ${totalAmount != null ? #numbers.formatDecimal(totalAmount, 1, 2) : '0.00'}">$1,234.56</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="order-summary">
+            <h3>Shipping Address</h3>
+            <p th:text="${shippingAddress}">123 Main Street, City, State 12345, Country</p>
+        </div>
+        
+        <p><strong>What's Next?</strong></p>
+        <ul>
+            <li>Your order will be processed within 1-2 business days</li>
+            <li>You'll receive a shipping confirmation with tracking details</li>
+            <li>Track your order status in your account dashboard</li>
+        </ul>
+        
+        <p style="text-align: center;">
+            <a href="http://localhost:3000/orders" class="button">Track Your Order</a>
+        </p>
+        
+        <p>If you have any questions about your order, please don't hesitate to contact us.</p>
+        
+        <p>Best regards,<br>
+        <strong>The B2B Marketplace Team</strong></p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2024 B2B Marketplace. All rights reserved.</p>
+        <p>This is an automated message. Please do not reply to this email.</p>
+    </div>
+</body>
+</html>

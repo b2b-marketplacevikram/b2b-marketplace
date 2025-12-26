@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .order-summary {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .order-info {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .items-table th, .items-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .items-table th {
+            background: #4caf50;
+            color: white;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #4caf50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            background: #333;
+            color: #999;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            border-radius: 0 0 10px 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎉 New Order Received!</h1>
+        <p>Order #<span th:text="${orderNumber}">12345</span></p>
+    </div>
+    <div class="content">
+        <p>Dear <strong th:text="${supplierName}">Supplier</strong>,</p>
+        
+        <p>Great news! You have received a new order from <strong th:text="${buyerName}">Customer Name</strong>.</p>
+        
+        <div class="order-summary">
+            <h3>Order Details</h3>
+            <div class="order-info">
+                <span>Order Number:</span>
+                <strong th:text="${orderNumber}">12345</strong>
+            </div>
+            <div class="order-info">
+                <span>Order Date:</span>
+                <strong th:text="${orderDate}">Dec 02, 2024 10:30 AM</strong>
+            </div>
+            <div class="order-info">
+                <span>Buyer:</span>
+                <strong th:text="${buyerName}">Customer Name</strong>
+            </div>
+            <div class="order-info">
+                <span>Total Amount:</span>
+                <strong th:text="'$' + ${#numbers.formatDecimal(totalAmount, 1, 2)}">$1,234.56</strong>
+            </div>
+        </div>
+        
+        <h3>Items Ordered</h3>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${items}">
+                    <td th:text="${item.productName}">Product Name</td>
+                    <td th:text="${item.sku}">SKU001</td>
+                    <td th:text="${item.quantity}">10</td>
+                    <td th:text="'$' + ${#numbers.formatDecimal(item.unitPrice, 1, 2)}">$99.99</td>
+                    <td th:text="'$' + ${#numbers.formatDecimal(item.subtotal, 1, 2)}">$999.90</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <p><strong>Next Steps:</strong></p>
+        <ul>
+            <li>Review the order details carefully</li>
+            <li>Confirm product availability and stock</li>
+            <li>Process and prepare the order for shipment</li>
+            <li>Update the order status in your dashboard</li>
+            <li>Provide tracking information to the buyer</li>
+        </ul>
+        
+        <p style="text-align: center;">
+            <a href="http://localhost:3000/supplier/orders" class="button">Manage Order</a>
+        </p>
+        
+        <p>Please process this order promptly to ensure buyer satisfaction and maintain your supplier rating.</p>
+        
+        <p>Best regards,<br>
+        <strong>The B2B Marketplace Team</strong></p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2024 B2B Marketplace. All rights reserved.</p>
+        <p>This is an automated message. Please do not reply to this email.</p>
+    </div>
+</body>
+</html>

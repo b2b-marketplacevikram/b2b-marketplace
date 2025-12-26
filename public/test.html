@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2c3e50; }
+        .success { color: #27ae60; font-size: 24px; }
+        .info { background: #3498db; color: white; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        a { color: #3498db; text-decoration: none; font-weight: bold; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✅ Vite Server is Working!</h1>
+        <p class="success">The development server is running correctly.</p>
+        
+        <div class="info">
+            <h3>B2B Marketplace Application</h3>
+            <p>Your React application should load at: <a href="/">Home Page</a></p>
+        </div>
+        
+        <h3>If you see a blank page:</h3>
+        <ol>
+            <li>Open Browser DevTools (Press F12)</li>
+            <li>Check the Console tab for JavaScript errors</li>
+            <li>Check the Network tab to see if files are loading</li>
+            <li>Try hard refresh: Ctrl + Shift + R</li>
+        </ol>
+        
+        <h3>Server Status:</h3>
+        <ul>
+            <li>✅ Frontend: Running on this port</li>
+            <li>✅ Backend User Service: Port 8081</li>
+            <li>✅ Backend Product Service: Port 8082</li>
+            <li>✅ Backend Order Service: Port 8083</li>
+            <li>✅ Backend Payment Service: Port 8084</li>
+        </ul>
+        
+        <p><strong>Test Credentials:</strong></p>
+        <ul>
+            <li>Buyer: buyer1@example.com / password123</li>
+            <li>Supplier: supplier1@example.com / password123</li>
+        </ul>
+        
+        <p><a href="/">← Go to Home Page</a></p>
+    </div>
+</body>
+</html>
