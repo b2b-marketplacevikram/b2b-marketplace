@@ -12,6 +12,7 @@ public class ProductResponse {
     private Long supplierId;
     private Long supplierUserId;  // The actual user ID for messaging
     private String supplierName;  // Company name or full name
+    private String supplierType;  // Business type: manufacturer, distributor, wholesaler, etc.
     private Long categoryId;
     private String categoryName;
     private String name;

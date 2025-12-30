@@ -8,6 +8,7 @@ const PAYMENT_SERVICE_URL = import.meta.env.VITE_PAYMENT_SERVICE_URL || 'http://
 const SEARCH_SERVICE_URL = import.meta.env.VITE_SEARCH_SERVICE_URL || 'http://localhost:8090/api';
 const EMAIL_SERVICE_URL = import.meta.env.VITE_EMAIL_SERVICE_URL || 'http://localhost:8087/api';
 const ADMIN_SERVICE_URL = import.meta.env.VITE_ADMIN_SERVICE_URL || 'http://localhost:8088/api';
+const NOTIFICATION_SERVICE_URL = import.meta.env.VITE_NOTIFICATION_SERVICE_URL || 'http://localhost:8086/api';
 
 // Create axios instance for each service
 const userAPI = axios.create({
@@ -59,8 +60,15 @@ const adminAPIInstance = axios.create({
   },
 });
 
+const notificationAPIInstance = axios.create({
+  baseURL: NOTIFICATION_SERVICE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 // Add token to all requests
-[userAPI, productAPIInstance, orderAPIInstance, paymentAPIInstance, searchAPIInstance, emailAPIInstance].forEach(api => {
+[userAPI, productAPIInstance, orderAPIInstance, paymentAPIInstance, searchAPIInstance, emailAPIInstance, notificationAPIInstance].forEach(api => {
   api.interceptors.request.use(
     (config) => {
       const token = localStorage.getItem('token');
@@ -261,6 +269,46 @@ export const categoryAPI = {
     } catch (error) {
       console.error('Error fetching categories:', error);
       return { success: false, data: [] };
+    }
+  },
+
+  getTopLevel: async () => {
+    try {
+      const response = await productAPIInstance.get('/categories/top-level');
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error fetching top-level categories:', error);
+      return { success: false, data: [] };
+    }
+  },
+
+  getSubcategories: async (parentId) => {
+    try {
+      const response = await productAPIInstance.get(`/categories/${parentId}/subcategories`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error fetching subcategories:', error);
+      return { success: false, data: [] };
+    }
+  },
+
+  getById: async (id) => {
+    try {
+      const response = await productAPIInstance.get(`/categories/${id}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error fetching category:', error);
+      return { success: false, data: null };
+    }
+  },
+
+  create: async (categoryData) => {
+    try {
+      const response = await productAPIInstance.post('/categories', categoryData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error creating category:', error);
+      return { success: false, error: error.response?.data?.message || 'Failed to create category' };
     }
   },
 };
@@ -487,6 +535,430 @@ export const orderAPI = {
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to confirm payment',
+      };
+    }
+  },
+
+  // B2B Payment Methods
+  getSupplierBankDetails: async (supplierId) => {
+    try {
+      const response = await orderAPIInstance.get(`/orders/supplier/${supplierId}/bank-details`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error fetching bank details:', error);
+      // Return default bank details if API fails
+      return { 
+        success: true, 
+        data: {
+          bankName: 'HDFC Bank',
+          accountHolderName: 'Supplier Account',
+          accountNumber: '50200012345678',
+          ifscCode: 'HDFC0001234',
+          upiId: 'supplier@hdfcbank'
+        }
+      };
+    }
+  },
+
+  saveSupplierBankDetails: async (supplierId, bankDetails) => {
+    try {
+      const response = await orderAPIInstance.post(`/orders/supplier/${supplierId}/bank-details`, bankDetails);
+      return { success: true, data: response.data.data, message: response.data.message };
+    } catch (error) {
+      console.error('Error saving bank details:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to save bank details',
+      };
+    }
+  },
+
+  submitPaymentProof: async (orderNumber, proofData) => {
+    try {
+      const response = await orderAPIInstance.post(`/orders/${orderNumber}/payment-proof`, proofData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to submit payment proof',
+      };
+    }
+  },
+
+  getAwaitingVerification: async (supplierId) => {
+    try {
+      const response = await orderAPIInstance.get(`/orders/supplier/${supplierId}/awaiting-verification`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error fetching orders awaiting verification:', error);
+      return { success: false, data: [] };
+    }
+  },
+
+  verifyPayment: async (orderNumber, verificationData) => {
+    try {
+      const response = await orderAPIInstance.post(`/orders/${orderNumber}/verify-payment`, verificationData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to verify payment',
+      };
+    }
+  },
+};
+
+// ==================== Quote APIs ====================
+export const quoteAPI = {
+  // Create a new quote request (buyer action)
+  create: async (quoteData) => {
+    try {
+      const response = await orderAPIInstance.post('/quotes', quoteData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to create quote request',
+      };
+    }
+  },
+
+  // Get quote by quote number
+  getByNumber: async (quoteNumber) => {
+    try {
+      const response = await orderAPIInstance.get(`/quotes/${quoteNumber}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch quote',
+      };
+    }
+  },
+
+  // Get all quotes for authenticated buyer
+  getBuyerQuotes: async (status = null) => {
+    try {
+      const params = status ? { status } : {};
+      const response = await orderAPIInstance.get('/quotes/buyer', { params });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch quotes',
+      };
+    }
+  },
+
+  // Get quotes for a specific buyer
+  getBuyerQuotesById: async (buyerId, status = null) => {
+    try {
+      const params = status ? { status } : {};
+      const response = await orderAPIInstance.get(`/quotes/buyer/${buyerId}`, { params });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch quotes',
+      };
+    }
+  },
+
+  // Get all quotes for authenticated supplier
+  getSupplierQuotes: async (status = null) => {
+    try {
+      const params = status ? { status } : {};
+      const response = await orderAPIInstance.get('/quotes/supplier', { params });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch quotes',
+      };
+    }
+  },
+
+  // Get quotes for a specific supplier
+  getSupplierQuotesById: async (supplierId, status = null) => {
+    try {
+      const params = status ? { status } : {};
+      const response = await orderAPIInstance.get(`/quotes/supplier/${supplierId}`, { params });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch quotes',
+      };
+    }
+  },
+
+  // Get supplier quote statistics
+  getSupplierStats: async (supplierId) => {
+    try {
+      const response = await orderAPIInstance.get(`/quotes/supplier/${supplierId}/stats`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch quote stats',
+      };
+    }
+  },
+
+  // Supplier responds to quote with pricing
+  respond: async (quoteNumber, responseData) => {
+    try {
+      const response = await orderAPIInstance.post(`/quotes/${quoteNumber}/respond`, responseData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to respond to quote',
+      };
+    }
+  },
+
+  // Supplier approves quote with final pricing
+  approve: async (quoteNumber, approvalData) => {
+    try {
+      const response = await orderAPIInstance.post(`/quotes/${quoteNumber}/approve`, approvalData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to approve quote',
+      };
+    }
+  },
+
+  // Supplier rejects quote
+  reject: async (quoteNumber, reason) => {
+    try {
+      const response = await orderAPIInstance.post(`/quotes/${quoteNumber}/reject`, { reason });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to reject quote',
+      };
+    }
+  },
+
+  // Supplier extends quote validity
+  extendValidity: async (quoteNumber, additionalDays) => {
+    try {
+      const response = await orderAPIInstance.post(`/quotes/${quoteNumber}/extend`, { additionalDays });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to extend quote validity',
+      };
+    }
+  },
+
+  // Buyer sends counter-offer
+  counterOffer: async (quoteNumber, message) => {
+    try {
+      const response = await orderAPIInstance.post(`/quotes/${quoteNumber}/counter-offer`, { message });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to send counter-offer',
+      };
+    }
+  },
+
+  // Buyer cancels quote
+  cancel: async (quoteNumber) => {
+    try {
+      const response = await orderAPIInstance.post(`/quotes/${quoteNumber}/cancel`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to cancel quote',
+      };
+    }
+  },
+
+  // Convert approved quote to order
+  convertToOrder: async (quoteNumber, orderData = {}) => {
+    try {
+      const payload = {
+        paymentType: orderData.paymentType || 'BANK_TRANSFER',
+        shippingAddress: orderData.shippingAddress || '',
+        notes: orderData.notes || ''
+      };
+      const response = await orderAPIInstance.post(`/quotes/${quoteNumber}/convert`, payload);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to convert quote to order',
+      };
+    }
+  },
+
+  // Add message to quote thread
+  addMessage: async (quoteNumber, messageData) => {
+    try {
+      const response = await orderAPIInstance.post(`/quotes/${quoteNumber}/messages`, messageData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to send message',
+      };
+    }
+  },
+};
+
+// ==================== Dispute/Ticket APIs ====================
+// Compliant with Indian E-Commerce Laws (Consumer Protection Act 2019)
+export const disputeAPI = {
+  // Create a new dispute/ticket
+  create: async (disputeData) => {
+    try {
+      const response = await orderAPIInstance.post('/disputes', disputeData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to create dispute',
+      };
+    }
+  },
+
+  // Get dispute by ticket number
+  getByTicketNumber: async (ticketNumber) => {
+    try {
+      const response = await orderAPIInstance.get(`/disputes/${ticketNumber}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch dispute',
+      };
+    }
+  },
+
+  // Get all disputes for buyer
+  getBuyerDisputes: async (status = null) => {
+    try {
+      const params = status ? { status } : {};
+      const response = await orderAPIInstance.get('/disputes/buyer', { params });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch disputes',
+      };
+    }
+  },
+
+  // Get all disputes for supplier
+  getSupplierDisputes: async (status = null) => {
+    try {
+      const params = status ? { status } : {};
+      const response = await orderAPIInstance.get('/disputes/supplier', { params });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch disputes',
+      };
+    }
+  },
+
+  // Get supplier dispute statistics
+  getSupplierStats: async () => {
+    try {
+      const response = await orderAPIInstance.get('/disputes/supplier/stats');
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch statistics',
+      };
+    }
+  },
+
+  // Acknowledge dispute (Supplier - must be within 48 hours)
+  acknowledge: async (ticketNumber, message = null) => {
+    try {
+      const response = await orderAPIInstance.post(`/disputes/${ticketNumber}/acknowledge`, { message });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to acknowledge dispute',
+      };
+    }
+  },
+
+  // Respond to dispute (Supplier)
+  respond: async (ticketNumber, responseData) => {
+    try {
+      const response = await orderAPIInstance.post(`/disputes/${ticketNumber}/respond`, responseData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to respond to dispute',
+      };
+    }
+  },
+
+  // Escalate dispute (Buyer)
+  escalate: async (ticketNumber, reason) => {
+    try {
+      const response = await orderAPIInstance.post(`/disputes/${ticketNumber}/escalate`, { reason });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to escalate dispute',
+      };
+    }
+  },
+
+  // Accept resolution (Buyer)
+  acceptResolution: async (ticketNumber, rating = null, feedback = null) => {
+    try {
+      const response = await orderAPIInstance.post(`/disputes/${ticketNumber}/accept-resolution`, { rating, feedback });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to accept resolution',
+      };
+    }
+  },
+
+  // Add message to dispute thread
+  addMessage: async (ticketNumber, messageData) => {
+    try {
+      const response = await orderAPIInstance.post(`/disputes/${ticketNumber}/messages`, messageData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to send message',
+      };
+    }
+  },
+
+  // Close dispute
+  close: async (ticketNumber, reason = null) => {
+    try {
+      const response = await orderAPIInstance.post(`/disputes/${ticketNumber}/close`, { reason });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to close dispute',
       };
     }
   },
@@ -1005,6 +1477,69 @@ export const adminAPI = {
   },
 };
 
+// WhatsApp Notification API
+export const whatsappAPI = {
+  // Notify suppliers about product search
+  notifyProductSearch: async (searchQuery, suppliers, buyerLocation = null, buyerId = null) => {
+    try {
+      const response = await notificationAPIInstance.post('/whatsapp/notify/product-search', {
+        searchQuery,
+        suppliers,
+        buyerLocation,
+        buyerId
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.log('WhatsApp notification error (non-critical):', error.message);
+      return { success: false, message: 'Notification service unavailable' };
+    }
+  },
+
+  // Notify supplier about new order
+  notifyNewOrder: async (supplierId, supplierName, supplierPhone, orderNumber, orderAmount, buyerName) => {
+    try {
+      const response = await notificationAPIInstance.post('/whatsapp/notify/new-order', {
+        supplierId,
+        supplierName,
+        supplierPhone,
+        orderNumber,
+        orderAmount,
+        buyerName
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.log('WhatsApp notification error (non-critical):', error.message);
+      return { success: false, message: 'Notification service unavailable' };
+    }
+  },
+
+  // Notify supplier about payment received
+  notifyPaymentReceived: async (supplierPhone, orderNumber, amount, paymentMethod) => {
+    try {
+      const response = await notificationAPIInstance.post('/whatsapp/notify/payment-received', {
+        supplierPhone,
+        orderNumber,
+        amount,
+        paymentMethod
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.log('WhatsApp notification error (non-critical):', error.message);
+      return { success: false, message: 'Notification service unavailable' };
+    }
+  },
+
+  // Test notification
+  testNotification: async (phone, message) => {
+    try {
+      const response = await notificationAPIInstance.post('/whatsapp/test', { phone, message });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Test failed' };
+    }
+  }
+};
+
 export default {
   auth: authAPI,
   product: productAPI,
@@ -1018,4 +1553,5 @@ export default {
   search: searchAPI,
   email: emailAPI,
   admin: adminAPI,
+  whatsapp: whatsappAPI,
 };

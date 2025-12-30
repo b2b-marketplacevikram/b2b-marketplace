@@ -18,6 +18,12 @@ public class CreateOrderRequest {
     private String shippingMethod;
     private String notes;
     private List<OrderItemRequest> items;
+    
+    // B2B PO-Based Payment Fields
+    private String poNumber;
+    private String paymentType;  // URGENT_ONLINE, BANK_TRANSFER, UPI, CREDIT_TERMS
+    private Boolean isUrgent = false;
+    private Integer creditTermsDays;  // For CREDIT_TERMS: 30, 60, 90
 
     @Data
     public static class OrderItemRequest {

@@ -1,0 +1,684 @@
+.dispute-detail-page {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 20px;
+}
+
+.dispute-detail-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header */
+.dispute-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.header-left .back-link {
+  color: #1976d2;
+  text-decoration: none;
+  font-size: 14px;
+  margin-bottom: 8px;
+  display: inline-block;
+}
+
+.header-left .back-link:hover {
+  text-decoration: underline;
+}
+
+.header-left h1 {
+  font-size: 24px;
+  margin: 8px 0;
+  color: #1a1a2e;
+}
+
+.badges {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-open { background: #fff3e0; color: #e65100; }
+.status-acknowledged { background: #e3f2fd; color: #1565c0; }
+.status-review { background: #f3e5f5; color: #7b1fa2; }
+.status-responded { background: #e8f5e9; color: #2e7d32; }
+.status-awaiting { background: #fff8e1; color: #ff8f00; }
+.status-escalated { background: #ffebee; color: #c62828; }
+.status-proposed { background: #e0f7fa; color: #00838f; }
+.status-resolved { background: #e8f5e9; color: #388e3c; }
+.status-closed { background: #f5f5f5; color: #616161; }
+
+.priority-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.priority-low { background: #e8f5e9; color: #388e3c; }
+.priority-medium { background: #fff3e0; color: #f57c00; }
+.priority-high { background: #ffebee; color: #d32f2f; }
+.priority-urgent { background: #d32f2f; color: white; }
+
+.escalation-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #fce4ec;
+  color: #c2185b;
+}
+
+.days-counter {
+  text-align: center;
+  padding: 15px 20px;
+  background: #e8f5e9;
+  border-radius: 10px;
+}
+
+.days-counter.urgent {
+  background: #ffebee;
+}
+
+.days-counter .count {
+  display: block;
+  font-size: 32px;
+  font-weight: 700;
+  color: #388e3c;
+}
+
+.days-counter.urgent .count {
+  color: #d32f2f;
+}
+
+.days-counter .label {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Content Layout */
+.dispute-content {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+}
+
+/* Cards */
+.info-card,
+.refund-card,
+.resolution-card,
+.resolution-form-card,
+.messages-card,
+.parties-card,
+.actions-card,
+.timeline-card,
+.compliance-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-bottom: 20px;
+}
+
+.info-card h2 {
+  font-size: 20px;
+  color: #1a1a2e;
+  margin-bottom: 16px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-item .label {
+  font-size: 12px;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.info-item .value {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.info-item .value.link {
+  color: #1976d2;
+  text-decoration: none;
+}
+
+.info-item .value.link:hover {
+  text-decoration: underline;
+}
+
+.description-section h3,
+.evidence-section h3 {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.description-section p {
+  color: #333;
+  line-height: 1.6;
+}
+
+.evidence-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.evidence-item {
+  padding: 10px 16px;
+  background: #f5f7fa;
+  border-radius: 8px;
+  color: #1976d2;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.evidence-item:hover {
+  background: #e3f2fd;
+}
+
+/* Refund Card */
+.refund-card h3 {
+  font-size: 16px;
+  color: #1a1a2e;
+  margin-bottom: 12px;
+}
+
+.refund-details {
+  display: flex;
+  gap: 30px;
+}
+
+.refund-amount .label,
+.refund-status .label {
+  font-size: 12px;
+  color: #888;
+}
+
+.refund-amount .value {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+.refund-status .status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.refund-status .status.pending { background: #fff3e0; color: #e65100; }
+.refund-status .status.approved { background: #e8f5e9; color: #2e7d32; }
+.refund-status .status.processing { background: #e3f2fd; color: #1565c0; }
+.refund-status .status.completed { background: #c8e6c9; color: #1b5e20; }
+.refund-status .status.rejected { background: #ffebee; color: #c62828; }
+
+/* Resolution Card */
+.resolution-card h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.resolution-type {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1976d2;
+  margin-bottom: 8px;
+}
+
+.resolution-notes {
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.resolution-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Resolution Form */
+.resolution-form-card h3 {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.form-group select,
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* Messages */
+.messages-card h3 {
+  font-size: 16px;
+  color: #1a1a2e;
+  margin-bottom: 16px;
+}
+
+.messages-list {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.message {
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  background: #f8f9fa;
+}
+
+.message.buyer {
+  background: #e3f2fd;
+  border-left: 3px solid #1976d2;
+}
+
+.message.supplier {
+  background: #e8f5e9;
+  border-left: 3px solid #388e3c;
+}
+
+.message.support {
+  background: #fff3e0;
+  border-left: 3px solid #f57c00;
+}
+
+.message.system {
+  background: #f5f5f5;
+  border-left: 3px solid #9e9e9e;
+  font-style: italic;
+}
+
+.message-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.message-header .sender {
+  font-weight: 600;
+  color: #333;
+}
+
+.message-header .sender-type {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.1);
+  color: #666;
+}
+
+.message-header .time {
+  font-size: 12px;
+  color: #999;
+  margin-left: auto;
+}
+
+.message-body {
+  color: #333;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.message-type-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 3px 8px;
+  background: #e0e0e0;
+  border-radius: 8px;
+  font-size: 10px;
+  color: #666;
+}
+
+.message-input {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.message-input textarea {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  resize: none;
+  font-size: 14px;
+}
+
+.message-input button {
+  align-self: flex-end;
+  padding: 10px 24px;
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.message-input button:disabled {
+  background: #ccc;
+}
+
+/* Sidebar Cards */
+.parties-card {
+  display: grid;
+  gap: 16px;
+}
+
+.party h4 {
+  font-size: 12px;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.party .name {
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 4px;
+}
+
+.party .contact {
+  font-size: 13px;
+  color: #666;
+  margin: 2px 0;
+}
+
+/* Actions Card */
+.actions-card h4 {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.actions-card button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.actions-card button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.actions-card button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-acknowledge {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.btn-respond {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.btn-escalate {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.btn-accept {
+  background: #4caf50;
+  color: white;
+}
+
+.btn-close {
+  background: #f5f5f5;
+  color: #616161;
+}
+
+.btn-cancel {
+  background: #f5f5f5;
+  color: #666;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-submit {
+  background: #1976d2;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* Timeline */
+.timeline-card h4 {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 24px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #e0e0e0;
+}
+
+.timeline-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  background: #1976d2;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px #1976d2;
+}
+
+.timeline-item .icon {
+  font-size: 16px;
+}
+
+.timeline-item .info {
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-item .label {
+  font-size: 13px;
+  color: #333;
+  font-weight: 500;
+}
+
+.timeline-item .date {
+  font-size: 12px;
+  color: #888;
+}
+
+/* Compliance */
+.compliance-card h4 {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.compliance-item {
+  margin-bottom: 12px;
+}
+
+.compliance-item .label {
+  display: block;
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.compliance-item .value {
+  font-size: 13px;
+  color: #333;
+}
+
+.compliance-item .value.overdue {
+  color: #d32f2f;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .dispute-content {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .parties-card,
+  .actions-card,
+  .timeline-card,
+  .compliance-card {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .dispute-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .header-right {
+    width: 100%;
+  }
+
+  .days-counter {
+    width: 100%;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resolution-actions {
+    flex-direction: column;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+
+  .refund-details {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .sidebar {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Loading and Error */
+.loading,
+.error-message {
+  text-align: center;
+  padding: 60px;
+  font-size: 18px;
+  color: #666;
+}
+
+.error-message {
+  color: #d32f2f;
+}

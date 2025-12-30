@@ -46,7 +46,10 @@ function Header() {
               <>
                 <Link to="/supplier/products">My Products</Link>
                 <Link to="/supplier/bundles">Bundles</Link>
+                <Link to="/supplier/quotes">Quotes</Link>
                 <Link to="/supplier/orders">Orders</Link>
+                <Link to="/supplier/disputes">Disputes</Link>
+                <Link to="/supplier/payments">Payments</Link>
                 <Link to="/supplier/analytics">Analytics</Link>
                 <Link to="/messages">Messages</Link>
                 <Link to="/account">My Account</Link>
@@ -55,7 +58,9 @@ function Header() {
             ) : (
               <>
                 <Link to="/bundles">Bundles</Link>
+                {user && <Link to="/quotes">My Quotes</Link>}
                 {user && <Link to="/orders">My Orders</Link>}
+                {user && <Link to="/disputes">My Tickets</Link>}
                 {user && <Link to="/messages">Messages</Link>}
                 {user && <Link to="/account">My Account</Link>}
               </>

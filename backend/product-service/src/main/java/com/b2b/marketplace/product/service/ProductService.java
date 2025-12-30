@@ -266,12 +266,13 @@ public class ProductService {
                     .ifPresent(category -> response.setCategoryName(category.getName()));
         }
 
-        // Get supplier details (company name and user ID for messaging)
+        // Get supplier details (company name, type and user ID for messaging)
         if (product.getSupplierId() != null) {
             supplierRepository.findById(product.getSupplierId())
                     .ifPresent(supplier -> {
                         response.setSupplierUserId(supplier.getUserId());
                         response.setSupplierName(supplier.getCompanyName());
+                        response.setSupplierType(supplier.getBusinessType());
                     });
         }
 

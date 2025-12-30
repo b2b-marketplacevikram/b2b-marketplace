@@ -72,6 +72,22 @@ public class Supplier {
 
     private Boolean verified = false;
 
+    // WhatsApp Notification Settings
+    @Column(name = "whatsapp_number")
+    private String whatsappNumber;
+
+    @Column(name = "whatsapp_notifications_enabled")
+    private Boolean whatsappNotificationsEnabled = true;
+
+    @Column(name = "notify_on_search")
+    private Boolean notifyOnSearch = true;
+
+    @Column(name = "notify_on_new_order")
+    private Boolean notifyOnNewOrder = true;
+
+    @Column(name = "notify_on_payment")
+    private Boolean notifyOnPayment = true;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

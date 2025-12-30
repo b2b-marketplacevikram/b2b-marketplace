@@ -4,6 +4,7 @@ import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
 import { useMessaging } from '../../context/MessagingContext'
 import { productAPI } from '../../services/api'
+import RequestQuoteModal from '../../components/RequestQuoteModal'
 import '../../styles/ProductDetails.css'
 
 function ProductDetails() {
@@ -17,6 +18,14 @@ function ProductDetails() {
   const [quantity, setQuantity] = useState(100)
   const [selectedImage, setSelectedImage] = useState(0)
   const [activeTab, setActiveTab] = useState('description')
+  const [toast, setToast] = useState({ show: false, type: '', message: '', icon: '' })
+  const [showQuoteModal, setShowQuoteModal] = useState(false)
+
+  // Show toast notification
+  const showToast = (type, message, icon = '✓') => {
+    setToast({ show: true, type, message, icon })
+    setTimeout(() => setToast({ show: false, type: '', message: '', icon: '' }), 3000)
+  }
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -62,9 +71,11 @@ function ProductDetails() {
             rating: p.averageRating || 0,
             reviews: p.reviewCount || 0,
             images: productImages,
+            supplierType: p.supplierType || null,
             supplier: {
               id: p.supplierUserId || p.supplierId,  // Use supplierUserId for messaging
               name: p.supplierName || 'Supplier',
+              type: p.supplierType || null,
               rating: 4.7,
               responseTime: '< 24 hours',
               verified: true,
@@ -99,29 +110,30 @@ function ProductDetails() {
 
   const handleAddToCart = async () => {
     if (quantity < product.moq) {
-      alert(`Minimum order quantity is ${product.moq}`)
+      showToast('warning', `Minimum order quantity is ${product.moq}`, '⚠️')
       return
     }
     
     try {
       const result = await addToCart({ ...product, quantity })
       if (result?.success) {
-        alert('Product added to cart!')
+        showToast('success', `${product.name} added to cart!`, '🛒')
       }
     } catch (error) {
       console.error('Failed to add to cart:', error)
+      showToast('error', 'Failed to add to cart', '❌')
     }
   }
 
   const handleContactSupplier = async () => {
     if (!user) {
-      alert('Please login to contact supplier')
+      showToast('warning', 'Please login to contact supplier', '🔐')
       navigate('/login')
       return
     }
 
     if (!product?.supplier?.id) {
-      alert('Supplier information not available')
+      showToast('error', 'Supplier information not available', '❌')
       return
     }
 
@@ -134,12 +146,21 @@ function ProductDetails() {
         await selectConversation(conversation)
         navigate('/messages')
       } else {
-        alert('Failed to start conversation. Please try again.')
+        showToast('error', 'Failed to start conversation. Please try again.', '❌')
       }
     } catch (error) {
       console.error('Error starting conversation:', error)
       alert('Failed to contact supplier. Please try again.')
     }
+  }
+
+  const handleRequestQuote = () => {
+    if (!user) {
+      showToast('warning', 'Please login to request a quote', '🔐')
+      navigate('/login')
+      return
+    }
+    setShowQuoteModal(true)
   }
 
   if (loading) {
@@ -152,6 +173,15 @@ function ProductDetails() {
 
   return (
     <div className="product-details-page">
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`product-toast ${toast.type}`}>
+          <span className="toast-icon">{toast.icon}</span>
+          <span className="toast-message">{toast.message}</span>
+          <button className="toast-close" onClick={() => setToast({ show: false })}>×</button>
+        </div>
+      )}
+
       <div className="product-container">
         {/* Image Gallery */}
         <div className="product-gallery">
@@ -183,7 +213,7 @@ function ProductDetails() {
           </div>
 
           <div className="price-section">
-            <div className="price">${product.price}</div>
+            <div className="price">₹{product.price?.toLocaleString('en-IN')}</div>
             <div className="moq">MOQ: {product.moq} units</div>
           </div>
 
@@ -192,6 +222,11 @@ function ProductDetails() {
               <div className="supplier-badge">
                 {product.supplier.verified && <span className="verified">✓ Verified</span>}
                 <strong>{product.supplier.name}</strong>
+                {product.supplier.type && (
+                  <span className={`supplier-type-label ${product.supplier.type.toLowerCase()}`}>
+                    {product.supplier.type.charAt(0).toUpperCase() + product.supplier.type.slice(1)}
+                  </span>
+                )}
               </div>
             </Link>
             <div className="supplier-details">
@@ -220,9 +255,14 @@ function ProductDetails() {
 
           <div className="action-buttons">
             {isBuyer && (
-              <button className="btn-primary" onClick={handleAddToCart}>
-                Add to Cart
-              </button>
+              <>
+                <button className="btn-primary" onClick={handleAddToCart}>
+                  Add to Cart
+                </button>
+                <button className="btn-quote" onClick={handleRequestQuote}>
+                  📋 Request Quote
+                </button>
+              </>
             )}
             {!isBuyer && user && (
               <div className="supplier-notice">
@@ -256,6 +296,12 @@ function ProductDetails() {
             onClick={() => setActiveTab('specifications')}
           >
             Specifications
+          </button>
+          <button
+            className={activeTab === 'compliance' ? 'active' : ''}
+            onClick={() => setActiveTab('compliance')}
+          >
+            Compliance Info
           </button>
           <button
             className={activeTab === 'reviews' ? 'active' : ''}
@@ -293,6 +339,93 @@ function ProductDetails() {
             </div>
           )}
 
+          {activeTab === 'compliance' && (
+            <div className="compliance-tab">
+              <div className="compliance-section">
+                <h3>🇮🇳 Country of Origin</h3>
+                <p className="compliance-value">{product.countryOfOrigin || product.origin || 'Not specified'}</p>
+              </div>
+
+              {product.hsnCode && (
+                <div className="compliance-section">
+                  <h3>📋 HSN Code</h3>
+                  <p className="compliance-value">{product.hsnCode}</p>
+                </div>
+              )}
+
+              {product.gstRate && (
+                <div className="compliance-section">
+                  <h3>💰 GST Rate</h3>
+                  <p className="compliance-value">{product.gstRate}%</p>
+                </div>
+              )}
+
+              {product.mrp && (
+                <div className="compliance-section">
+                  <h3>🏷️ MRP</h3>
+                  <p className="compliance-value">₹{product.mrp?.toLocaleString('en-IN')}</p>
+                </div>
+              )}
+
+              {(product.manufacturingDate || product.expiryDate) && (
+                <div className="compliance-section">
+                  <h3>📅 Date Information</h3>
+                  {product.manufacturingDate && (
+                    <p><strong>Manufacturing Date:</strong> {product.manufacturingDate}</p>
+                  )}
+                  {product.expiryDate && (
+                    <p><strong>Best Before / Expiry:</strong> {product.expiryDate}</p>
+                  )}
+                </div>
+              )}
+
+              {product.netQuantity && (
+                <div className="compliance-section">
+                  <h3>⚖️ Net Quantity</h3>
+                  <p className="compliance-value">{product.netQuantity}</p>
+                </div>
+              )}
+
+              {(product.weightKg || product.lengthCm) && (
+                <div className="compliance-section">
+                  <h3>📦 Package Dimensions</h3>
+                  {product.weightKg && <p><strong>Weight:</strong> {product.weightKg} kg</p>}
+                  {product.lengthCm && (
+                    <p><strong>Dimensions (L×W×H):</strong> {product.lengthCm} × {product.widthCm} × {product.heightCm} cm</p>
+                  )}
+                </div>
+              )}
+
+              {product.warrantyMonths && (
+                <div className="compliance-section">
+                  <h3>🛡️ Warranty</h3>
+                  <p className="compliance-value">{product.warrantyMonths} months</p>
+                  {product.warrantyTerms && <p className="warranty-terms">{product.warrantyTerms}</p>}
+                </div>
+              )}
+
+              {product.manufacturerName && (
+                <div className="compliance-section">
+                  <h3>🏭 Manufacturer Details</h3>
+                  <p><strong>Name:</strong> {product.manufacturerName}</p>
+                  {product.manufacturerAddress && <p><strong>Address:</strong> {product.manufacturerAddress}</p>}
+                </div>
+              )}
+
+              {product.importerName && (
+                <div className="compliance-section">
+                  <h3>📥 Importer Details</h3>
+                  <p><strong>Name:</strong> {product.importerName}</p>
+                  {product.importerAddress && <p><strong>Address:</strong> {product.importerAddress}</p>}
+                </div>
+              )}
+
+              <div className="compliance-notice">
+                <p>ℹ️ Product information displayed as per <strong>Consumer Protection (E-Commerce) Rules, 2020</strong> and <strong>Legal Metrology Act</strong>.</p>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'reviews' && (
             <div className="reviews-tab">
               <div className="review-summary">
@@ -324,6 +457,24 @@ function ProductDetails() {
           )}
         </div>
       </div>
+
+      {/* Request Quote Modal */}
+      <RequestQuoteModal
+        isOpen={showQuoteModal}
+        onClose={() => setShowQuoteModal(false)}
+        products={product ? [{
+          id: product.id,
+          name: product.name,
+          image: product.images?.[0],
+          price: product.price,
+          quantity: quantity,
+          moq: product.moq,
+          unit: 'piece'
+        }] : []}
+        supplierId={product?.supplier?.id}
+        supplierName={product?.supplier?.name}
+        isFromCart={false}
+      />
     </div>
   )
 }

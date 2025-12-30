@@ -1,0 +1,368 @@
+.dispute-list-page {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 2rem;
+}
+
+.dispute-list-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.header-content h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.75rem;
+  color: #1a1a2e;
+}
+
+.header-content .subtitle {
+  color: #666;
+  margin: 0;
+}
+
+.btn-view-orders {
+  padding: 0.75rem 1.5rem;
+  background: #f0f0f0;
+  color: #333;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+/* Compliance Notice */
+.compliance-notice {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #e8f5e9;
+  border-radius: 12px;
+  border-left: 4px solid #2e7d32;
+  margin-bottom: 1.5rem;
+}
+
+.compliance-notice .notice-icon {
+  font-size: 2rem;
+}
+
+.compliance-notice h4 {
+  margin: 0 0 0.25rem;
+  color: #2e7d32;
+  font-size: 1rem;
+}
+
+.compliance-notice p {
+  margin: 0;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+/* Filter Tabs */
+.filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  background: white;
+  padding: 0.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.filter-tabs .tab {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  background: transparent;
+  color: #666;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.filter-tabs .tab:hover {
+  background: #f0f0f0;
+}
+
+.filter-tabs .tab.active {
+  background: #1a1a2e;
+  color: white;
+}
+
+/* Disputes List */
+.disputes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dispute-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.dispute-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #eee;
+}
+
+.ticket-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ticket-number {
+  font-weight: 700;
+  color: #1a1a2e;
+  font-family: monospace;
+  font-size: 0.95rem;
+}
+
+.dispute-meta .order-ref {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-open { background: #fff3cd; color: #856404; }
+.status-acknowledged { background: #d1ecf1; color: #0c5460; }
+.status-review { background: #e2e3f3; color: #383d8f; }
+.status-responded { background: #d4edda; color: #155724; }
+.status-awaiting { background: #ffeaa7; color: #6c5ce7; }
+.status-escalated { background: #ffebee; color: #c62828; }
+.status-proposed { background: #e3f2fd; color: #1565c0; }
+.status-resolved { background: #c8e6c9; color: #2e7d32; }
+.status-closed { background: #f5f5f5; color: #666; }
+.status-reopened { background: #fff3e0; color: #e65100; }
+
+/* Priority Badges */
+.priority-badge {
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.priority-low { background: #e0e0e0; color: #666; }
+.priority-medium { background: #fff3cd; color: #856404; }
+.priority-high { background: #ffe0b2; color: #e65100; }
+.priority-urgent { background: #ffcdd2; color: #c62828; }
+
+.escalation-badge {
+  padding: 0.25rem 0.6rem;
+  background: #ffebee;
+  color: #c62828;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* Dispute Body */
+.dispute-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.dispute-subject {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  color: #1a1a2e;
+}
+
+.type-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: #f0f0f0;
+  color: #666;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.dispute-description {
+  margin: 0.75rem 0 0;
+  color: #666;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+/* Dispute Footer */
+.dispute-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: #fafafa;
+  border-top: 1px solid #eee;
+}
+
+.footer-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.days-left {
+  padding: 0.2rem 0.5rem;
+  background: #e3f2fd;
+  color: #1565c0;
+  border-radius: 4px;
+}
+
+.days-left.urgent {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.message-count {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.btn-view {
+  padding: 0.5rem 1rem;
+  background: #1a1a2e;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+/* Refund Info */
+.refund-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background: #f5f5f5;
+  border-top: 1px dashed #ddd;
+  font-size: 0.9rem;
+}
+
+.refund-label {
+  font-weight: 500;
+}
+
+.refund-status {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.refund-status.requested { background: #fff3cd; color: #856404; }
+.refund-status.approved { background: #d4edda; color: #155724; }
+.refund-status.processing { background: #e3f2fd; color: #1565c0; }
+.refund-status.completed { background: #c8e6c9; color: #2e7d32; }
+.refund-status.rejected { background: #ffebee; color: #c62828; }
+
+.refund-amount {
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+/* Overdue Warning */
+.overdue-warning {
+  padding: 0.75rem 1.5rem;
+  background: #fff3e0;
+  color: #e65100;
+  font-size: 0.9rem;
+  border-top: 1px solid #ffcc80;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 12px;
+}
+
+.empty-state .empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  margin: 0 0 0.5rem;
+  color: #1a1a2e;
+}
+
+.empty-state p {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.empty-state .btn-primary {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #ff6b00;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dispute-list-page {
+    padding: 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .dispute-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .dispute-footer {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .filter-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.5rem;
+  }
+}

@@ -46,12 +46,12 @@ function BundleCard({ bundle }) {
         <div className="bundle-pricing">
           <div className="price-row">
             {bundle.originalPrice && bundle.originalPrice !== bundle.bundlePrice && (
-              <span className="original-price">${bundle.originalPrice?.toFixed(2)}</span>
+              <span className="original-price">₹{bundle.originalPrice?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
             )}
-            <span className="bundle-price">${bundle.bundlePrice?.toFixed(2)}</span>
+            <span className="bundle-price">₹{bundle.bundlePrice?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
           </div>
           {savings > 0 && (
-            <span className="savings">Save ${savings.toFixed(2)}</span>
+            <span className="savings">Save ₹{savings.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
           )}
         </div>
 

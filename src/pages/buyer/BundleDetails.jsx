@@ -113,13 +113,13 @@ function BundleDetails() {
             <div className="bundle-pricing-section">
               <div className="price-display">
                 {bundle.originalPrice !== bundle.bundlePrice && (
-                  <span className="original-price">${bundle.originalPrice?.toFixed(2)}</span>
+                  <span className="original-price">₹{bundle.originalPrice?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                 )}
-                <span className="current-price">${bundle.bundlePrice?.toFixed(2)}</span>
+                <span className="current-price">₹{bundle.bundlePrice?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
               {bundle.savings > 0 && (
                 <div className="savings-display">
-                  You save: <strong>${bundle.savings.toFixed(2)}</strong>
+                  You save: <strong>₹{bundle.savings.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
                 </div>
               )}
             </div>
@@ -159,7 +159,7 @@ function BundleDetails() {
             </div>
 
             <div className="total-price">
-              Total: <strong>${(bundle.bundlePrice * quantity).toFixed(2)}</strong>
+              Total: <strong>₹{(bundle.bundlePrice * quantity).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
             </div>
 
             {isBuyer ? (
@@ -196,8 +196,8 @@ function BundleDetails() {
                     Qty: {item.quantity}
                   </div>
                   <div className="item-pricing">
-                    <span className="item-unit-price">${item.unitPrice?.toFixed(2)} each</span>
-                    <span className="item-subtotal">Subtotal: ${item.subtotal?.toFixed(2)}</span>
+                    <span className="item-unit-price">₹{item.unitPrice?.toLocaleString('en-IN', { minimumFractionDigits: 2 })} each</span>
+                    <span className="item-subtotal">Subtotal: ₹{item.subtotal?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
               </div>
@@ -211,15 +211,15 @@ function BundleDetails() {
           <div className="breakdown-table">
             <div className="breakdown-row">
               <span>Original Price (all items)</span>
-              <span>${bundle.originalPrice?.toFixed(2)}</span>
+              <span>₹{bundle.originalPrice?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="breakdown-row discount">
               <span>Bundle Discount ({bundle.discountPercentage}%)</span>
-              <span>-${bundle.savings?.toFixed(2)}</span>
+              <span>-₹{bundle.savings?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
             </div>
             <div className="breakdown-row total">
               <span>Bundle Price</span>
-              <span>${bundle.bundlePrice?.toFixed(2)}</span>
+              <span>₹{bundle.bundlePrice?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
             </div>
           </div>
         </div>

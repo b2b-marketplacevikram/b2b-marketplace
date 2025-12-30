@@ -1,24 +1,33 @@
-import { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import ProductCard from '../../components/ProductCard'
 import FilterPanel from '../../components/FilterPanel'
-import { productAPI } from '../../services/api'
+import RequestQuoteModal from '../../components/RequestQuoteModal'
+import { productAPI, whatsappAPI } from '../../services/api'
+import { useAuth } from '../../context/AuthContext'
 import '../../styles/ProductSearch.css'
 
 function ProductSearch() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
   const [products, setProducts] = useState([])
   const [allProducts, setAllProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [productsPerPage] = useState(12)
+  const { user } = useAuth()
+  const notifiedSearches = useRef(new Set()) // Track notified searches to avoid duplicates
+  const [showQuoteModal, setShowQuoteModal] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
   const [filters, setFilters] = useState({
     category: searchParams.get('category') || '',
+    subcategory: '',
     priceRange: { min: 0, max: 10000 },
     moq: { min: 0, max: 1000 },
     rating: 0,
     certifications: [],
-    location: ''
+    location: '',
+    supplierType: ''
   })
   const [sortBy, setSortBy] = useState('relevance')
 
@@ -72,6 +81,7 @@ function ProductSearch() {
             image: p.images?.[0]?.imageUrl || p.imageUrl || '/images/placeholder.jpg',
             supplier: p.supplierName || 'Supplier',
             supplierId: p.supplierId,
+            supplierType: (p.supplierType || p.businessType || '').toLowerCase(),
             location: p.origin || 'N/A'
           })) : []
           
@@ -93,6 +103,10 @@ function ProductSearch() {
             if (filters.location && !p.location.toLowerCase().includes(filters.location.toLowerCase())) {
               return false
             }
+            // Supplier Type filter
+            if (filters.supplierType && p.supplierType !== filters.supplierType.toLowerCase()) {
+              return false
+            }
             return true
           })
 
@@ -111,6 +125,13 @@ function ProductSearch() {
           setAllProducts(mappedProducts)
           setProducts(mappedProducts)
           setCurrentPage(1)
+
+          // Send WhatsApp notification to suppliers (non-blocking)
+          const searchQuery = searchParams.get('q')
+          if (searchQuery && mappedProducts.length > 0 && !notifiedSearches.current.has(searchQuery)) {
+            notifiedSearches.current.add(searchQuery) // Mark as notified
+            notifySuppliers(searchQuery, mappedProducts)
+          }
         } else {
           console.warn('No products found or API error')
           setAllProducts([])
@@ -126,6 +147,52 @@ function ProductSearch() {
 
     fetchProducts()
   }, [searchParams, filters, sortBy])
+
+  // Send WhatsApp notifications to suppliers about product search
+  const notifySuppliers = async (searchQuery, products) => {
+    try {
+      // Group products by supplier to get unique suppliers
+      const supplierMap = new Map()
+      products.forEach(product => {
+        if (product.supplierId && !supplierMap.has(product.supplierId)) {
+          supplierMap.set(product.supplierId, {
+            id: product.supplierId,
+            name: product.supplier || `Supplier ${product.supplierId}`,
+            phone: product.supplierPhone || null, // Will be fetched from backend
+            matchingProductCount: 1
+          })
+        } else if (product.supplierId) {
+          const supplier = supplierMap.get(product.supplierId)
+          supplier.matchingProductCount++
+        }
+      })
+
+      const suppliers = Array.from(supplierMap.values())
+      
+      // Only notify if we have suppliers with products
+      if (suppliers.length > 0) {
+        console.log(`📱 Sending WhatsApp notifications to ${suppliers.length} suppliers for search: "${searchQuery}"`)
+        
+        // Non-blocking API call - don't wait for response
+        whatsappAPI.notifyProductSearch(
+          searchQuery,
+          suppliers,
+          user?.location || null,
+          user?.id || null
+        ).then(result => {
+          if (result.success) {
+            console.log('✅ Supplier notifications sent:', result.data)
+          }
+        }).catch(err => {
+          // Silently fail - this is a non-critical feature
+          console.log('WhatsApp notification skipped:', err.message)
+        })
+      }
+    } catch (error) {
+      // Silently fail - notifications should not affect search experience
+      console.log('WhatsApp notification error (non-critical):', error.message)
+    }
+  }
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters)
@@ -186,6 +253,25 @@ function ProductSearch() {
     return pages
   }
 
+  const handleRequestQuote = (product) => {
+    if (!user) {
+      navigate('/login')
+      return
+    }
+    setSelectedProduct({
+      id: product.id,
+      name: product.name,
+      image: product.image,
+      price: product.price,
+      quantity: product.moq || 100,
+      moq: product.moq,
+      unit: 'piece',
+      supplierId: product.supplierId,
+      supplier: product.supplier
+    })
+    setShowQuoteModal(true)
+  }
+
   return (
     <div className="product-search-page">
       <div className="search-container">
@@ -218,7 +304,12 @@ function ProductSearch() {
               {currentProducts.length > 0 ? (
                 <div className="products-grid">
                   {currentProducts.map(product => (
-                    <ProductCard key={product.id} product={product} showDetails />
+                    <ProductCard 
+                      key={product.id} 
+                      product={product} 
+                      showDetails 
+                      onRequestQuote={handleRequestQuote}
+                    />
                   ))}
                 </div>
               ) : (
@@ -261,6 +352,19 @@ function ProductSearch() {
           )}
         </div>
       </div>
+
+      {/* Request Quote Modal */}
+      <RequestQuoteModal
+        isOpen={showQuoteModal}
+        onClose={() => {
+          setShowQuoteModal(false)
+          setSelectedProduct(null)
+        }}
+        products={selectedProduct ? [selectedProduct] : []}
+        supplierId={selectedProduct?.supplierId}
+        supplierName={selectedProduct?.supplier}
+        isFromCart={false}
+      />
     </div>
   )
 }

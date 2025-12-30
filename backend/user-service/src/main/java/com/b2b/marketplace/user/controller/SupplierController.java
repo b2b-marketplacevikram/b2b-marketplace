@@ -47,4 +47,35 @@ public class SupplierController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Supplier> updateSupplier(@PathVariable Long id, @RequestBody Supplier supplierUpdate) {
+        log.info("Updating supplier with ID: {}", id);
+        try {
+            Supplier existingSupplier = supplierService.getSupplierById(id);
+            
+            // Update notification settings
+            if (supplierUpdate.getWhatsappNumber() != null) {
+                existingSupplier.setWhatsappNumber(supplierUpdate.getWhatsappNumber());
+            }
+            if (supplierUpdate.getWhatsappNotificationsEnabled() != null) {
+                existingSupplier.setWhatsappNotificationsEnabled(supplierUpdate.getWhatsappNotificationsEnabled());
+            }
+            if (supplierUpdate.getNotifyOnSearch() != null) {
+                existingSupplier.setNotifyOnSearch(supplierUpdate.getNotifyOnSearch());
+            }
+            if (supplierUpdate.getNotifyOnNewOrder() != null) {
+                existingSupplier.setNotifyOnNewOrder(supplierUpdate.getNotifyOnNewOrder());
+            }
+            if (supplierUpdate.getNotifyOnPayment() != null) {
+                existingSupplier.setNotifyOnPayment(supplierUpdate.getNotifyOnPayment());
+            }
+            
+            Supplier updated = supplierService.saveSupplier(existingSupplier);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            log.error("Error updating supplier: {}", e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

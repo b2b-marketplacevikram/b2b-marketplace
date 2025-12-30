@@ -5,14 +5,18 @@ import com.razorpay.Payment;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.razorpay.Refund;
-import com.razorpay.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import jakarta.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,22 +52,27 @@ public class RazorpayService {
     public Map<String, Object> createOrder(BigDecimal amount, String currency, String receipt) throws RazorpayException {
         JSONObject orderRequest = new JSONObject();
         // Razorpay expects amount in smallest currency unit (paise for INR)
-        orderRequest.put("amount", amount.multiply(BigDecimal.valueOf(100)).intValue());
+        int amountInPaise = amount.multiply(BigDecimal.valueOf(100)).intValue();
+        orderRequest.put("amount", amountInPaise);
         orderRequest.put("currency", currency != null ? currency : "INR");
         orderRequest.put("receipt", receipt);
         orderRequest.put("payment_capture", 1); // Auto capture payment
 
         Order order = razorpayClient.orders.create(orderRequest);
+        
+        // Convert to JSON string first, then parse to avoid SDK type casting issues
+        String orderJson = order.toString();
+        JSONObject orderData = new JSONObject(orderJson);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("orderId", order.get("id"));
-        response.put("amount", order.get("amount"));
-        response.put("currency", order.get("currency"));
-        response.put("receipt", order.get("receipt"));
-        response.put("status", order.get("status"));
+        response.put("orderId", orderData.getString("id"));
+        response.put("amount", orderData.getInt("amount"));
+        response.put("currency", orderData.getString("currency"));
+        response.put("receipt", orderData.optString("receipt", receipt));
+        response.put("status", orderData.getString("status"));
         response.put("keyId", keyId); // Frontend needs this for checkout
 
-        log.info("Razorpay order created: {}", String.valueOf(order.get("id")));
+        log.info("Razorpay order created: {}", orderData.getString("id"));
         return response;
     }
 
@@ -76,18 +85,38 @@ public class RazorpayService {
      */
     public boolean verifyPaymentSignature(String razorpayOrderId, String razorpayPaymentId, String razorpaySignature) {
         try {
-            JSONObject options = new JSONObject();
-            options.put("razorpay_order_id", razorpayOrderId);
-            options.put("razorpay_payment_id", razorpayPaymentId);
-            options.put("razorpay_signature", razorpaySignature);
-
-            boolean isValid = Utils.verifyPaymentSignature(options, keySecret);
+            // Manual signature verification to avoid SDK bug
+            String payload = razorpayOrderId + "|" + razorpayPaymentId;
+            String expectedSignature = calculateHmacSha256(payload, keySecret);
+            
+            boolean isValid = expectedSignature.equals(razorpaySignature);
             log.info("Payment signature verification result: {} for payment: {}", isValid, razorpayPaymentId);
             return isValid;
-        } catch (RazorpayException e) {
+        } catch (Exception e) {
             log.error("Signature verification failed: {}", e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Calculate HMAC-SHA256 signature
+     */
+    private String calculateHmacSha256(String data, String secret) throws NoSuchAlgorithmException, InvalidKeyException {
+        Mac sha256Hmac = Mac.getInstance("HmacSHA256");
+        SecretKeySpec secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        sha256Hmac.init(secretKey);
+        byte[] hash = sha256Hmac.doFinal(data.getBytes(StandardCharsets.UTF_8));
+        
+        // Convert to hex string
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : hash) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 
     /**
@@ -97,16 +126,20 @@ public class RazorpayService {
      */
     public Map<String, Object> fetchPayment(String paymentId) throws RazorpayException {
         Payment payment = razorpayClient.payments.fetch(paymentId);
+        
+        // Convert to JSON to avoid SDK type casting issues
+        String paymentJson = payment.toString();
+        JSONObject paymentData = new JSONObject(paymentJson);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("id", payment.get("id"));
-        response.put("amount", payment.get("amount"));
-        response.put("currency", payment.get("currency"));
-        response.put("status", payment.get("status"));
-        response.put("method", payment.get("method"));
-        response.put("email", payment.get("email"));
-        response.put("contact", payment.get("contact"));
-        response.put("orderId", payment.get("order_id"));
+        response.put("id", paymentData.optString("id"));
+        response.put("amount", paymentData.optInt("amount"));
+        response.put("currency", paymentData.optString("currency"));
+        response.put("status", paymentData.optString("status"));
+        response.put("method", paymentData.optString("method"));
+        response.put("email", paymentData.optString("email"));
+        response.put("contact", paymentData.optString("contact"));
+        response.put("orderId", paymentData.optString("order_id"));
 
         return response;
     }
@@ -123,13 +156,17 @@ public class RazorpayService {
         captureRequest.put("currency", "INR");
 
         Payment payment = razorpayClient.payments.capture(paymentId, captureRequest);
+        
+        // Convert to JSON to avoid SDK type casting issues
+        String paymentJson = payment.toString();
+        JSONObject paymentData = new JSONObject(paymentJson);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("id", payment.get("id"));
-        response.put("status", payment.get("status"));
-        response.put("captured", payment.get("captured"));
+        response.put("id", paymentData.optString("id"));
+        response.put("status", paymentData.optString("status"));
+        response.put("captured", paymentData.optBoolean("captured"));
 
-        log.info("Payment captured: {} status: {}", paymentId, String.valueOf(payment.get("status")));
+        log.info("Payment captured: {} status: {}", paymentId, paymentData.optString("status"));
         return response;
     }
 
@@ -147,14 +184,18 @@ public class RazorpayService {
         refundRequest.put("speed", "normal");
 
         Refund refund = razorpayClient.payments.refund(paymentId, refundRequest);
+        
+        // Convert to JSON to avoid SDK type casting issues
+        String refundJson = refund.toString();
+        JSONObject refundData = new JSONObject(refundJson);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("id", refund.get("id"));
-        response.put("paymentId", refund.get("payment_id"));
-        response.put("amount", refund.get("amount"));
-        response.put("status", refund.get("status"));
+        response.put("id", refundData.optString("id"));
+        response.put("paymentId", refundData.optString("payment_id"));
+        response.put("amount", refundData.optInt("amount"));
+        response.put("status", refundData.optString("status"));
 
-        log.info("Refund initiated: {} for payment: {}", String.valueOf(refund.get("id")), paymentId);
+        log.info("Refund initiated: {} for payment: {}", refundData.optString("id"), paymentId);
         return response;
     }
 

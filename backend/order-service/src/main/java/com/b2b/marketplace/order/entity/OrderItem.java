@@ -31,6 +31,13 @@ public class OrderItem {
 
     @Column(name = "total_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalPrice;
+    
+    // GST Compliance Fields
+    @Column(name = "hsn_code", length = 10)
+    private String hsnCode;
+    
+    @Column(name = "gst_rate", precision = 5, scale = 2)
+    private BigDecimal gstRate;
 
     @Column(columnDefinition = "JSON")
     private String specifications;

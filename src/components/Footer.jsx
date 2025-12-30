@@ -41,8 +41,16 @@ function Footer() {
           <ul>
             <li><Link to="/help">Help Center</Link></li>
             <li><Link to="/contact">Contact Us</Link></li>
-            <li><Link to="/terms">Terms & Conditions</Link></li>
+            <li><Link to="/grievance">Grievance Redressal</Link></li>
+          </ul>
+        </div>
+
+        <div className="footer-section">
+          <h4>Legal</h4>
+          <ul>
+            <li><Link to="/terms">Terms of Service</Link></li>
             <li><Link to="/privacy">Privacy Policy</Link></li>
+            <li><Link to="/refund-policy">Refund Policy</Link></li>
           </ul>
         </div>
 

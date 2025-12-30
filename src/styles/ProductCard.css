@@ -106,11 +106,50 @@
 .product-supplier {
   font-size: 0.9rem;
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .product-supplier a {
   color: var(--secondary-color);
   font-weight: 500;
+}
+
+.supplier-type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.supplier-type-badge.manufacturer {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.supplier-type-badge.distributor {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.supplier-type-badge.wholesaler {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.supplier-type-badge.trader {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
+.supplier-type-badge.dealer {
+  background-color: #fce4ec;
+  color: #c2185b;
 }
 
 .product-location {
@@ -120,10 +159,19 @@
 
 .product-actions {
   padding: 0 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.product-actions-row {
+  display: flex;
+  gap: 10px;
 }
 
 .btn-view {
-  width: 100%;
+  flex: 1;
   padding: 12px;
   background-color: var(--primary-color);
   color: white;
@@ -137,4 +185,22 @@
 .btn-view:hover {
   background-color: #e55f00;
   color: white;
+}
+
+.btn-request-quote-card {
+  width: 100%;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-request-quote-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }

@@ -4,13 +4,19 @@ import com.b2b.marketplace.order.dto.BuyerDTO;
 import com.b2b.marketplace.order.dto.CreateOrderRequest;
 import com.b2b.marketplace.order.dto.OrderResponse;
 import com.b2b.marketplace.order.dto.UpdateOrderStatusRequest;
+import com.b2b.marketplace.order.dto.PaymentProofRequest;
+import com.b2b.marketplace.order.dto.VerifyPaymentRequest;
+import com.b2b.marketplace.order.dto.SupplierBankDetailsResponse;
+import com.b2b.marketplace.order.dto.SupplierBankDetailsRequest;
 import com.b2b.marketplace.order.entity.Buyer;
 import com.b2b.marketplace.order.entity.Order;
+import com.b2b.marketplace.order.entity.SupplierBankDetails;
 import com.b2b.marketplace.order.entity.OrderItem;
 import com.b2b.marketplace.order.entity.Supplier;
 import com.b2b.marketplace.order.repository.BuyerRepository;
 import com.b2b.marketplace.order.repository.OrderRepository;
 import com.b2b.marketplace.order.repository.SupplierRepository;
+import com.b2b.marketplace.order.repository.SupplierBankDetailsRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,10 +45,142 @@ public class OrderService {
     @Autowired
     private SupplierRepository supplierRepository;
     
+    @Autowired
+    private SupplierBankDetailsRepository supplierBankDetailsRepository;
+    
     private final RestTemplate restTemplate = new RestTemplate();
     private static final String EMAIL_SERVICE_URL = "http://localhost:8087/api/email";
     private static final String USER_SERVICE_URL = "http://localhost:8081/api/users";
     private static final String NOTIFICATION_SERVICE_URL = "http://localhost:8086/api/notifications";
+
+    // ==================== B2B Payment Methods ====================
+    
+    /**
+     * Submit payment proof for bank transfer/UPI orders
+     */
+    @Transactional
+    public OrderResponse submitPaymentProof(String orderNumber, PaymentProofRequest request) {
+        Order order = orderRepository.findByOrderNumber(orderNumber)
+            .orElseThrow(() -> new RuntimeException("Order not found: " + orderNumber));
+        
+        order.setPaymentReference(request.getPaymentReference());
+        order.setPaymentProofUrl(request.getPaymentProofUrl());
+        order.setPaymentStatus(Order.PaymentStatus.AWAITING_VERIFICATION);
+        
+        order = orderRepository.save(order);
+        log.info("Payment proof submitted for order {}: Reference={}", orderNumber, request.getPaymentReference());
+        
+        return mapToResponse(order);
+    }
+    
+    /**
+     * Verify payment (Supplier/Admin action)
+     */
+    @Transactional
+    public OrderResponse verifyPayment(String orderNumber, VerifyPaymentRequest request, Long verifiedBy) {
+        Order order = orderRepository.findByOrderNumber(orderNumber)
+            .orElseThrow(() -> new RuntimeException("Order not found: " + orderNumber));
+        
+        if (request.getApproved()) {
+            order.setPaymentStatus(Order.PaymentStatus.PAID);
+            order.setStatus(Order.OrderStatus.PAYMENT_VERIFIED);
+            order.setPaymentVerifiedAt(LocalDateTime.now());
+            order.setPaymentVerifiedBy(verifiedBy);
+            log.info("Payment verified for order {}", orderNumber);
+        } else {
+            order.setPaymentStatus(Order.PaymentStatus.FAILED);
+            order.setNotes(order.getNotes() != null 
+                ? order.getNotes() + "\nPayment rejected: " + request.getRejectionReason()
+                : "Payment rejected: " + request.getRejectionReason());
+            log.info("Payment rejected for order {}: {}", orderNumber, request.getRejectionReason());
+        }
+        
+        order = orderRepository.save(order);
+        return mapToResponse(order);
+    }
+    
+    /**
+     * Get orders awaiting payment verification for a supplier
+     */
+    public List<OrderResponse> getOrdersAwaitingPaymentVerification(Long supplierId) {
+        List<Order> orders = orderRepository.findBySupplierIdAndPaymentStatus(
+            supplierId, Order.PaymentStatus.AWAITING_VERIFICATION);
+        return orders.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+    
+    /**
+     * Get supplier bank details
+     */
+    public SupplierBankDetailsResponse getSupplierBankDetails(Long supplierId) {
+        Optional<SupplierBankDetails> bankDetailsOpt = supplierBankDetailsRepository.findBySupplierIdAndIsPrimaryTrue(supplierId);
+        
+        if (bankDetailsOpt.isEmpty()) {
+            bankDetailsOpt = supplierBankDetailsRepository.findFirstBySupplierId(supplierId);
+        }
+        
+        if (bankDetailsOpt.isPresent()) {
+            SupplierBankDetails entity = bankDetailsOpt.get();
+            SupplierBankDetailsResponse response = new SupplierBankDetailsResponse();
+            response.setId(entity.getId());
+            response.setBankName(entity.getBankName());
+            response.setAccountHolderName(entity.getAccountHolderName());
+            response.setAccountNumber(entity.getAccountNumber());
+            response.setIfscCode(entity.getIfscCode());
+            response.setUpiId(entity.getUpiId());
+            response.setSwiftCode(entity.getSwiftCode());
+            response.setBranchName(entity.getBranchName());
+            response.setIsPrimary(entity.getIsPrimary());
+            response.setIsVerified(entity.getIsVerified());
+            return response;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Save or update supplier bank details
+     */
+    @Transactional
+    public SupplierBankDetailsResponse saveSupplierBankDetails(Long supplierId, SupplierBankDetailsRequest request) {
+        SupplierBankDetails entity;
+        
+        // Check if bank details already exist for this supplier
+        Optional<SupplierBankDetails> existingOpt = supplierBankDetailsRepository.findFirstBySupplierId(supplierId);
+        
+        if (existingOpt.isPresent()) {
+            entity = existingOpt.get();
+        } else {
+            entity = new SupplierBankDetails();
+            entity.setSupplierId(supplierId);
+        }
+        
+        entity.setBankName(request.getBankName());
+        entity.setAccountHolderName(request.getAccountHolderName());
+        entity.setAccountNumber(request.getAccountNumber());
+        entity.setIfscCode(request.getIfscCode());
+        entity.setUpiId(request.getUpiId());
+        entity.setSwiftCode(request.getSwiftCode());
+        entity.setBranchName(request.getBranchName());
+        entity.setBranchAddress(request.getBranchAddress());
+        entity.setIsPrimary(request.getIsPrimary() != null ? request.getIsPrimary() : true);
+        
+        entity = supplierBankDetailsRepository.save(entity);
+        
+        // Map to response
+        SupplierBankDetailsResponse response = new SupplierBankDetailsResponse();
+        response.setId(entity.getId());
+        response.setBankName(entity.getBankName());
+        response.setAccountHolderName(entity.getAccountHolderName());
+        response.setAccountNumber(entity.getAccountNumber());
+        response.setIfscCode(entity.getIfscCode());
+        response.setUpiId(entity.getUpiId());
+        response.setSwiftCode(entity.getSwiftCode());
+        response.setBranchName(entity.getBranchName());
+        response.setIsPrimary(entity.getIsPrimary());
+        response.setIsVerified(entity.getIsVerified());
+        
+        return response;
+    }
 
     /**
      * Convert user_id to buyer_id by querying the database.
@@ -147,6 +285,45 @@ public class OrderService {
             item.setTotalPrice(itemRequest.getTotalPrice());
             order.addItem(item);
         }
+
+        // Set B2B PO-Based Payment Fields
+        if (request.getPoNumber() != null) {
+            order.setPoNumber(request.getPoNumber());
+        }
+        
+        // Handle payment type and calculate commission
+        String paymentType = request.getPaymentType();
+        if (paymentType != null) {
+            order.setPaymentType(Order.PaymentType.valueOf(paymentType));
+            
+            // Calculate commission for urgent online payments
+            if (paymentType.equals("URGENT_ONLINE")) {
+                order.setIsUrgent(true);
+                BigDecimal commissionRate = new BigDecimal("2.00"); // 2% commission
+                BigDecimal commissionAmount = request.getTotalAmount()
+                    .multiply(commissionRate)
+                    .divide(new BigDecimal("100"));
+                order.setPaymentCommissionRate(commissionRate);
+                order.setPaymentCommissionAmount(commissionAmount);
+                order.setPaymentCommissionPaidBy(Order.CommissionPaidBy.BUYER);
+                // Add commission to total
+                order.setTotalAmount(request.getTotalAmount().add(commissionAmount));
+                order.setStatus(Order.OrderStatus.PENDING);
+            } else if (paymentType.equals("BANK_TRANSFER") || paymentType.equals("UPI")) {
+                // Zero commission - awaiting manual payment
+                order.setPaymentCommissionRate(BigDecimal.ZERO);
+                order.setPaymentCommissionAmount(BigDecimal.ZERO);
+                order.setStatus(Order.OrderStatus.AWAITING_PAYMENT);
+            } else if (paymentType.equals("CREDIT_TERMS")) {
+                // Credit terms for trusted buyers
+                order.setPaymentCommissionRate(BigDecimal.ZERO);
+                order.setPaymentCommissionAmount(BigDecimal.ZERO);
+                order.setCreditTermsDays(request.getCreditTermsDays() != null ? request.getCreditTermsDays() : 30);
+                order.setStatus(Order.OrderStatus.CONFIRMED); // Ship immediately for credit buyers
+            }
+        }
+        
+        order.setIsUrgent(request.getIsUrgent() != null && request.getIsUrgent());
 
         // Save order
         order = orderRepository.save(order);

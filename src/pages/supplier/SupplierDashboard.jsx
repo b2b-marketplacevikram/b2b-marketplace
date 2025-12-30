@@ -162,7 +162,7 @@ function SupplierDashboard() {
         <div className="stat-card">
           <div className="stat-icon">💰</div>
           <div className="stat-details">
-            <h3>${stats.revenue.toLocaleString()}</h3>
+            <h3>₹{stats.revenue.toLocaleString('en-IN')}</h3>
             <p>Total Revenue</p>
           </div>
         </div>
@@ -214,7 +214,7 @@ function SupplierDashboard() {
                     <tr key={order.id}>
                       <td><Link to={`/supplier/orders/${order.id}`}>{order.id}</Link></td>
                       <td>{order.buyer}</td>
-                      <td>${order.amount.toFixed(2)}</td>
+                      <td>₹{order.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                       <td>
                         <span className={`status-badge ${getStatusClass(order.status)}`}>
                           {order.status}
@@ -280,15 +280,25 @@ function SupplierDashboard() {
             <h3>Process Orders</h3>
             <p>Handle pending orders</p>
           </Link>
-          <button className="action-card" onClick={() => alert('Messages feature coming soon')}>
-            <span className="action-icon">💬</span>
-            <h3>View Messages</h3>
-            <p>{stats.messages} unread</p>
-          </button>
+          <Link to="/supplier/bank-details" className="action-card">
+            <span className="action-icon">🏦</span>
+            <h3>Bank Details</h3>
+            <p>Manage payment info</p>
+          </Link>
+          <Link to="/supplier/payments" className="action-card">
+            <span className="action-icon">💰</span>
+            <h3>Verify Payments</h3>
+            <p>Review bank transfers</p>
+          </Link>
           <Link to="/supplier/analytics" className="action-card">
             <span className="action-icon">📈</span>
             <h3>View Analytics</h3>
             <p>Performance insights</p>
+          </Link>
+          <Link to="/supplier/notifications" className="action-card">
+            <span className="action-icon">📱</span>
+            <h3>WhatsApp Alerts</h3>
+            <p>Notification settings</p>
           </Link>
         </div>
       </div>

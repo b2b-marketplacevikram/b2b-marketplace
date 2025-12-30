@@ -3,6 +3,10 @@ package com.b2b.marketplace.order.controller;
 import com.b2b.marketplace.order.dto.CreateOrderRequest;
 import com.b2b.marketplace.order.dto.OrderResponse;
 import com.b2b.marketplace.order.dto.UpdateOrderStatusRequest;
+import com.b2b.marketplace.order.dto.PaymentProofRequest;
+import com.b2b.marketplace.order.dto.VerifyPaymentRequest;
+import com.b2b.marketplace.order.dto.SupplierBankDetailsResponse;
+import com.b2b.marketplace.order.dto.SupplierBankDetailsRequest;
 import com.b2b.marketplace.order.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +15,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -46,6 +52,102 @@ public class OrderController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // ==================== B2B Payment Endpoints ====================
+    
+    /**
+     * Submit payment proof for bank transfer/UPI orders
+     */
+    @PostMapping("/{orderNumber}/payment-proof")
+    public ResponseEntity<?> submitPaymentProof(
+            @PathVariable String orderNumber,
+            @RequestBody PaymentProofRequest request) {
+        try {
+            OrderResponse response = orderService.submitPaymentProof(orderNumber, request);
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("message", "Payment proof submitted. Awaiting verification.");
+            result.put("data", response);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+    
+    /**
+     * Verify payment (for Supplier/Admin)
+     */
+    @PostMapping("/{orderNumber}/verify-payment")
+    public ResponseEntity<?> verifyPayment(
+            @PathVariable String orderNumber,
+            @RequestBody VerifyPaymentRequest request) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Long verifiedBy = Long.parseLong(auth.getName());
+            
+            OrderResponse response = orderService.verifyPayment(orderNumber, request, verifiedBy);
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("message", request.getApproved() ? "Payment verified successfully" : "Payment rejected");
+            result.put("data", response);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+    
+    /**
+     * Get orders awaiting payment verification (for Supplier)
+     */
+    @GetMapping("/supplier/{supplierId}/awaiting-verification")
+    public ResponseEntity<?> getOrdersAwaitingVerification(@PathVariable Long supplierId) {
+        try {
+            List<OrderResponse> orders = orderService.getOrdersAwaitingPaymentVerification(supplierId);
+            return ResponseEntity.ok(orders);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+    
+    /**
+     * Get supplier bank details for payment
+     */
+    @GetMapping("/supplier/{supplierId}/bank-details")
+    public ResponseEntity<?> getSupplierBankDetails(@PathVariable Long supplierId) {
+        try {
+            SupplierBankDetailsResponse bankDetails = orderService.getSupplierBankDetails(supplierId);
+            if (bankDetails == null) {
+                // Return empty response indicating supplier hasn't configured bank details
+                return ResponseEntity.ok(Map.of(
+                    "notConfigured", true,
+                    "message", "Supplier has not configured bank details yet",
+                    "supplierId", supplierId
+                ));
+            }
+            return ResponseEntity.ok(bankDetails);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+    
+    /**
+     * Save or update supplier bank details
+     */
+    @PostMapping("/supplier/{supplierId}/bank-details")
+    public ResponseEntity<?> saveSupplierBankDetails(
+            @PathVariable Long supplierId,
+            @RequestBody SupplierBankDetailsRequest request) {
+        try {
+            SupplierBankDetailsResponse response = orderService.saveSupplierBankDetails(supplierId, request);
+            return ResponseEntity.ok(Map.of(
+                "success", true, 
+                "message", "Bank details saved successfully",
+                "data", response
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 

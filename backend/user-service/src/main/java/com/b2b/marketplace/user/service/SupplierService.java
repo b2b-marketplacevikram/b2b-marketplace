@@ -30,4 +30,9 @@ public class SupplierService {
         log.info("Fetching supplier by email: {}", email);
         return supplierRepository.findByEmail(email);
     }
+
+    public Supplier saveSupplier(Supplier supplier) {
+        log.info("Saving supplier: {}", supplier.getId());
+        return supplierRepository.save(supplier);
+    }
 }

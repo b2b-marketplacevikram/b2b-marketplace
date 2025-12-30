@@ -178,20 +178,27 @@ function Register() {
                 </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Country (Optional)</label>
+                    <label>State</label>
                     <select
                       name="country"
                       value={formData.country}
                       onChange={handleInputChange}
                     >
-                      <option value="">Select Country</option>
-                      <option value="USA">United States</option>
-                      <option value="China">China</option>
-                      <option value="UK">United Kingdom</option>
-                      <option value="Germany">Germany</option>
-                      <option value="India">India</option>
-                      <option value="Japan">Japan</option>
-                      <option value="Canada">Canada</option>
+                      <option value="">Select State</option>
+                      <option value="Maharashtra">Maharashtra</option>
+                      <option value="Karnataka">Karnataka</option>
+                      <option value="Tamil Nadu">Tamil Nadu</option>
+                      <option value="Gujarat">Gujarat</option>
+                      <option value="Delhi">Delhi</option>
+                      <option value="Telangana">Telangana</option>
+                      <option value="West Bengal">West Bengal</option>
+                      <option value="Uttar Pradesh">Uttar Pradesh</option>
+                      <option value="Rajasthan">Rajasthan</option>
+                      <option value="Kerala">Kerala</option>
+                      <option value="Andhra Pradesh">Andhra Pradesh</option>
+                      <option value="Punjab">Punjab</option>
+                      <option value="Haryana">Haryana</option>
+                      <option value="Madhya Pradesh">Madhya Pradesh</option>
                     </select>
                   </div>
                   <div className="form-group">
@@ -236,19 +243,28 @@ function Register() {
                     </select>
                   </div>
                   <div className="form-group">
-                    <label>Country</label>
+                    <label>State</label>
                     <select
                       name="country"
                       value={formData.country}
                       onChange={handleInputChange}
                       required
                     >
-                      <option value="">Select Country</option>
-                      <option value="USA">United States</option>
-                      <option value="China">China</option>
-                      <option value="UK">United Kingdom</option>
-                      <option value="Germany">Germany</option>
-                      <option value="India">India</option>
+                      <option value="">Select State</option>
+                      <option value="Maharashtra">Maharashtra</option>
+                      <option value="Karnataka">Karnataka</option>
+                      <option value="Tamil Nadu">Tamil Nadu</option>
+                      <option value="Gujarat">Gujarat</option>
+                      <option value="Delhi">Delhi</option>
+                      <option value="Telangana">Telangana</option>
+                      <option value="West Bengal">West Bengal</option>
+                      <option value="Uttar Pradesh">Uttar Pradesh</option>
+                      <option value="Rajasthan">Rajasthan</option>
+                      <option value="Kerala">Kerala</option>
+                      <option value="Andhra Pradesh">Andhra Pradesh</option>
+                      <option value="Punjab">Punjab</option>
+                      <option value="Haryana">Haryana</option>
+                      <option value="Madhya Pradesh">Madhya Pradesh</option>
                     </select>
                   </div>
                 </div>
@@ -259,7 +275,7 @@ function Register() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    placeholder="+1-555-123-4567"
+                    placeholder="+91-98765-43210"
                     required
                   />
                 </div>

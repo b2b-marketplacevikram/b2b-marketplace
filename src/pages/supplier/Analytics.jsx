@@ -188,8 +188,8 @@ function Analytics() {
             </span>
           </div>
           <h3>Total Revenue</h3>
-          <div className="metric-value">${safeNumber(analytics.revenue?.current).toLocaleString()}</div>
-          <p className="metric-comparison">vs ${safeNumber(analytics.revenue?.previous).toLocaleString()} last period</p>
+          <div className="metric-value">₹{safeNumber(analytics.revenue?.current).toLocaleString('en-IN')}</div>
+          <p className="metric-comparison">vs ₹{safeNumber(analytics.revenue?.previous).toLocaleString('en-IN')} last period</p>
         </div>
 
         <div className="metric-card">
@@ -212,8 +212,8 @@ function Analytics() {
             </span>
           </div>
           <h3>Avg Order Value</h3>
-          <div className="metric-value">${analytics.avgOrderValue.current.toFixed(2)}</div>
-          <p className="metric-comparison">vs ${analytics.avgOrderValue.previous.toFixed(2)} last period</p>
+          <div className="metric-value">₹{analytics.avgOrderValue.current.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+          <p className="metric-comparison">vs ₹{analytics.avgOrderValue.previous.toLocaleString('en-IN', { minimumFractionDigits: 2 })} last period</p>
         </div>
 
         <div className="metric-card">
@@ -240,7 +240,7 @@ function Analytics() {
                 const height = (data.revenue / maxRevenue) * 100
                 return (
                   <div key={index} className="bar-wrapper">
-                    <div className="bar-value">${(data.revenue / 1000).toFixed(0)}k</div>
+                    <div className="bar-value">₹{(data.revenue / 1000).toFixed(0)}k</div>
                     <div className="bar" style={{ height: `${height}%` }}>
                       <div className="bar-fill"></div>
                     </div>
@@ -260,7 +260,7 @@ function Analytics() {
               <div key={index} className="category-item">
                 <div className="category-info">
                   <span className="category-name">{cat.category || 'Unknown'}</span>
-                  <span className="category-revenue">${safeNumber(cat.revenue).toLocaleString()}</span>
+                  <span className="category-revenue">₹{safeNumber(cat.revenue).toLocaleString('en-IN')}</span>
                 </div>
                 <div className="progress-bar">
                   <div
@@ -298,7 +298,7 @@ function Analytics() {
                     </div>
                   </td>
                   <td>{product.sales || 0}</td>
-                  <td>${safeNumber(product.revenue).toFixed(2)}</td>
+                  <td>₹{safeNumber(product.revenue).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                   <td>
                     <span className={`growth-badge ${getGrowthClass(product.growth)}`}>
                       {formatGrowth(product.growth)}
@@ -332,7 +332,7 @@ function Analytics() {
                     </div>
                   </td>
                   <td>{buyer.orders || 0}</td>
-                  <td>${safeNumber(buyer.revenue).toLocaleString()}</td>
+                  <td>₹{safeNumber(buyer.revenue).toLocaleString('en-IN')}</td>
                   <td>{buyer.lastOrder || 'N/A'}</td>
                 </tr>
               ))}

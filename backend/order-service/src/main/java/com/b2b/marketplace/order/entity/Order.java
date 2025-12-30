@@ -97,6 +97,77 @@ public class Order {
     @Column(name = "refund_amount", precision = 12, scale = 2)
     private BigDecimal refundAmount;
 
+    // B2B PO-Based Payment Fields
+    @Column(name = "po_number")
+    private String poNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_type")
+    private PaymentType paymentType = PaymentType.BANK_TRANSFER;
+
+    @Column(name = "payment_reference")
+    private String paymentReference;
+
+    @Column(name = "payment_proof_url")
+    private String paymentProofUrl;
+
+    @Column(name = "payment_verified_at")
+    private LocalDateTime paymentVerifiedAt;
+
+    @Column(name = "payment_verified_by")
+    private Long paymentVerifiedBy;
+
+    @Column(name = "credit_terms_days")
+    private Integer creditTermsDays = 0;
+
+    @Column(name = "credit_limit", precision = 12, scale = 2)
+    private BigDecimal creditLimit;
+
+    @Column(name = "payment_commission_rate", precision = 5, scale = 2)
+    private BigDecimal paymentCommissionRate = BigDecimal.ZERO;
+
+    @Column(name = "payment_commission_amount", precision = 12, scale = 2)
+    private BigDecimal paymentCommissionAmount = BigDecimal.ZERO;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_commission_paid_by")
+    private CommissionPaidBy paymentCommissionPaidBy = CommissionPaidBy.BUYER;
+
+    @Column(name = "is_urgent")
+    private Boolean isUrgent = false;
+    
+    // GST Invoice Fields
+    @Column(name = "invoice_number", unique = true)
+    private String invoiceNumber;
+    
+    @Column(name = "invoice_date")
+    private LocalDateTime invoiceDate;
+    
+    @Column(name = "buyer_gstin", length = 15)
+    private String buyerGstin;
+    
+    @Column(name = "supplier_gstin", length = 15)
+    private String supplierGstin;
+    
+    @Column(name = "place_of_supply", length = 100)
+    private String placeOfSupply;
+    
+    // Tax breakdown for GST compliance
+    @Column(name = "cgst_amount", precision = 12, scale = 2)
+    private BigDecimal cgstAmount = BigDecimal.ZERO;
+    
+    @Column(name = "sgst_amount", precision = 12, scale = 2)
+    private BigDecimal sgstAmount = BigDecimal.ZERO;
+    
+    @Column(name = "igst_amount", precision = 12, scale = 2)
+    private BigDecimal igstAmount = BigDecimal.ZERO;
+    
+    @Column(name = "cess_amount", precision = 12, scale = 2)
+    private BigDecimal cessAmount = BigDecimal.ZERO;
+    
+    @Column(name = "is_same_state")
+    private Boolean isSameState = true; // Determines CGST+SGST vs IGST
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
@@ -112,11 +183,22 @@ public class Order {
     }
 
     public enum OrderStatus {
-        PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED, REFUNDED
+        PENDING, AWAITING_PAYMENT, PAYMENT_VERIFIED, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED, REFUNDED
     }
 
     public enum PaymentStatus {
-        PENDING, PAID, FAILED, REFUNDED
+        PENDING, AWAITING_VERIFICATION, PAID, FAILED, REFUNDED
+    }
+
+    public enum PaymentType {
+        URGENT_ONLINE,      // Razorpay/Stripe with 2% commission
+        BANK_TRANSFER,      // NEFT/RTGS/IMPS - 0% commission
+        UPI,                // UPI - 0% commission
+        CREDIT_TERMS        // NET 30/60/90 for trusted buyers
+    }
+
+    public enum CommissionPaidBy {
+        BUYER, PLATFORM
     }
 
     public void addItem(OrderItem item) {

@@ -1,0 +1,464 @@
+/* Quotes List Page Styles */
+.quotes-list-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.quotes-container {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.quotes-header {
+  margin-bottom: 30px;
+}
+
+.quotes-header h1 {
+  margin: 0 0 8px 0;
+  color: #111827;
+}
+
+.quotes-header p {
+  margin: 0;
+  color: #6b7280;
+}
+
+/* Filter Buttons */
+.quotes-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.quotes-filters button {
+  padding: 10px 20px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 25px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quotes-filters button:hover {
+  background: #e5e7eb;
+}
+
+.quotes-filters button.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+}
+
+/* Quote Cards */
+.quotes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.quote-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  transition: box-shadow 0.2s;
+}
+
+.quote-card:hover {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.quote-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.quote-number .label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.quote-number .value {
+  font-weight: 700;
+  color: #111827;
+  font-size: 1.125rem;
+  margin-left: 8px;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-responded {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-reviewing {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.status-negotiating {
+  background: #fae8ff;
+  color: #86198f;
+}
+
+.status-approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-converted {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #10b981;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-cancelled {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.status-expired {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.quote-supplier {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* Quote Items Preview */
+.quote-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+}
+
+.item-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.item-preview img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.item-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-qty {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.more-items {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  background: #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+/* Quote Pricing */
+.quote-pricing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: white;
+  border-radius: 8px;
+}
+
+.price-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.price-row span:first-child {
+  color: #6b7280;
+}
+
+.price-row .original {
+  color: #374151;
+  text-decoration: line-through;
+}
+
+.price-row .quoted {
+  color: #059669;
+  font-weight: 600;
+}
+
+.price-row.final {
+  background: linear-gradient(135deg, #10b981, #059669);
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+
+.price-row.final span {
+  color: white;
+}
+
+.price-row .final-price {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.discount-badge {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Quote Dates */
+.quote-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-bottom: 16px;
+  font-size: 0.875rem;
+}
+
+.date-item {
+  display: flex;
+  gap: 8px;
+}
+
+.date-item .label {
+  color: #6b7280;
+}
+
+.date-item .expired {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.days-left {
+  margin-left: 4px;
+  color: #059669;
+  font-weight: 500;
+}
+
+/* Quote Actions */
+.quote-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn-view {
+  padding: 10px 20px;
+  background: #374151;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.btn-view:hover {
+  background: #1f2937;
+  color: white;
+}
+
+.btn-order {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.2s;
+}
+
+.btn-order:hover {
+  transform: translateY(-2px);
+  color: white;
+}
+
+.btn-secondary {
+  padding: 10px 20px;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.btn-cancel {
+  padding: 10px 20px;
+  background: transparent;
+  color: #dc2626;
+  border: 1px solid #dc2626;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #fee2e2;
+}
+
+/* Empty State */
+.no-quotes {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.no-quotes .empty-icon {
+  font-size: 64px;
+  margin-bottom: 24px;
+}
+
+.no-quotes h2 {
+  margin: 0 0 8px 0;
+  color: #111827;
+}
+
+.no-quotes p {
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: transform 0.2s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  color: white;
+}
+
+/* Loading & Error States */
+.loading {
+  text-align: center;
+  padding: 60px;
+  color: #6b7280;
+}
+
+.error-message {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .quotes-filters {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 16px;
+  }
+
+  .quotes-filters button {
+    white-space: nowrap;
+  }
+
+  .quote-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .quote-pricing {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .quote-actions {
+    flex-direction: column;
+  }
+
+  .quote-actions button,
+  .quote-actions a {
+    width: 100%;
+    text-align: center;
+  }
+}

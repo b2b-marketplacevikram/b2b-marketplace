@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,10 @@ public class Product {
 
     @Column(name = "unit_price", precision = 10, scale = 2)
     private BigDecimal unitPrice;
+    
+    // GST Compliance - MRP for products that have MRP
+    @Column(name = "mrp", precision = 10, scale = 2)
+    private BigDecimal mrp;
 
     @Column(length = 50)
     private String unit;
@@ -50,6 +55,11 @@ public class Product {
     @Column(name = "lead_time_days")
     private Integer leadTimeDays;
 
+    // E-Commerce Rules 2020 - Country of Origin (mandatory)
+    @Column(name = "country_of_origin", length = 100)
+    private String countryOfOrigin;
+    
+    // Legacy field - kept for backward compatibility
     @Column(length = 100)
     private String origin;
 
@@ -58,6 +68,60 @@ public class Product {
 
     @Column(length = 50)
     private String model;
+    
+    // GST Compliance - HSN Code (mandatory for GST invoices)
+    @Column(name = "hsn_code", length = 10)
+    private String hsnCode;
+    
+    // GST Rate (5%, 12%, 18%, 28%)
+    @Column(name = "gst_rate", precision = 5, scale = 2)
+    private BigDecimal gstRate;
+    
+    // Legal Metrology - Manufacturing Date
+    @Column(name = "manufacturing_date")
+    private LocalDate manufacturingDate;
+    
+    // Legal Metrology - Expiry Date / Best Before
+    @Column(name = "expiry_date")
+    private LocalDate expiryDate;
+    
+    // Legal Metrology - Net Quantity
+    @Column(name = "net_quantity", length = 50)
+    private String netQuantity;
+    
+    // Legal Metrology - Package Dimensions
+    @Column(name = "weight_kg", precision = 10, scale = 3)
+    private BigDecimal weightKg;
+    
+    @Column(name = "length_cm", precision = 10, scale = 2)
+    private BigDecimal lengthCm;
+    
+    @Column(name = "width_cm", precision = 10, scale = 2)
+    private BigDecimal widthCm;
+    
+    @Column(name = "height_cm", precision = 10, scale = 2)
+    private BigDecimal heightCm;
+    
+    // Warranty Information
+    @Column(name = "warranty_months")
+    private Integer warrantyMonths;
+    
+    @Column(name = "warranty_terms", length = 500)
+    private String warrantyTerms;
+    
+    // Manufacturer Details
+    @Column(name = "manufacturer_name", length = 200)
+    private String manufacturerName;
+    
+    @Column(name = "manufacturer_address", length = 500)
+    private String manufacturerAddress;
+    
+    // Importer Details (for imported products)
+    @Column(name = "importer_name", length = 200)
+    private String importerName;
+    
+    @Column(name = "importer_address", length = 500)
+    private String importerAddress;
 
     @Column(columnDefinition = "JSON")
     private String specifications;

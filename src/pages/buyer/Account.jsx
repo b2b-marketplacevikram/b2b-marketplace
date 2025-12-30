@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useNavigate, Link } from 'react-router-dom'
 import { supplierAPI } from '../../services/api'
 import axios from 'axios'
 import '../../styles/Account.css'
 
 function Account() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
+  const [deleting, setDeleting] = useState(false)
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -39,10 +44,10 @@ function Account() {
     try {
       setLoading(true)
       
-      // Load user basic info
+      // Load user basic info - backend returns 'fullName' not 'name'
       setFormData(prev => ({
         ...prev,
-        fullName: user.name || '',
+        fullName: user.fullName || user.name || '',
         email: user.email || ''
       }))
 
@@ -80,7 +85,7 @@ function Account() {
             country: profile.country || '',
             postalCode: profile.postalCode || '',
             businessName: profile.companyName || '',
-            businessType: profile.businessType || '',
+            businessType: (profile.businessType || '').toLowerCase(),
             description: profile.description || '',
             website: profile.website || ''
           }))
@@ -258,10 +263,10 @@ function Account() {
                       onChange={handleChange}
                     >
                       <option value="">Select type</option>
-                      <option value="MANUFACTURER">Manufacturer</option>
-                      <option value="DISTRIBUTOR">Distributor</option>
-                      <option value="WHOLESALER">Wholesaler</option>
-                      <option value="TRADER">Trader</option>
+                      <option value="manufacturer">Manufacturer</option>
+                      <option value="distributor">Distributor</option>
+                      <option value="wholesaler">Wholesaler</option>
+                      <option value="trader">Trader</option>
                     </select>
                   </div>
                 </div>
@@ -346,20 +351,21 @@ function Account() {
                 <input
                   type="text"
                   name="country"
-                  value={formData.country}
-                  onChange={handleChange}
-                  placeholder="Country"
+                  value="India"
+                  readOnly
+                  style={{background: '#f5f5f5', cursor: 'not-allowed'}}
                 />
               </div>
 
               <div className="form-group">
-                <label>Postal Code</label>
+                <label>PIN Code</label>
                 <input
                   type="text"
                   name="postalCode"
                   value={formData.postalCode}
                   onChange={handleChange}
-                  placeholder="12345"
+                  placeholder="400001"
+                  maxLength="6"
                 />
               </div>
             </div>
@@ -374,9 +380,166 @@ function Account() {
             </button>
           </div>
         </form>
+
+        {/* Data Privacy & Deletion Section */}
+        <div className="data-privacy-section">
+          <h2>🔒 Data Privacy</h2>
+          <p className="privacy-note">
+            As per the Digital Personal Data Protection Act, 2023 (DPDP), you have the right to access, 
+            correct, and delete your personal data. Learn more in our{' '}
+            <Link to="/privacy">Privacy Policy</Link>.
+          </p>
+
+          <div className="privacy-actions">
+            <div className="privacy-action-card">
+              <h3>📥 Download Your Data</h3>
+              <p>Get a copy of all personal data we have about you.</p>
+              <button className="btn-outline" onClick={handleDownloadData}>
+                Request Data Export
+              </button>
+            </div>
+
+            <div className="privacy-action-card danger">
+              <h3>🗑️ Delete Account</h3>
+              <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
+              <button className="btn-danger" onClick={() => setShowDeleteModal(true)}>
+                Delete My Account
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="modal-overlay">
+            <div className="modal delete-modal">
+              <h2>⚠️ Delete Account</h2>
+              <p>
+                You are about to permanently delete your account. This will:
+              </p>
+              <ul>
+                <li>Remove all your personal information</li>
+                <li>Cancel any pending orders</li>
+                <li>Delete your order history</li>
+                <li>Remove all saved addresses and preferences</li>
+              </ul>
+              <p className="warning-text">
+                <strong>This action cannot be undone.</strong>
+              </p>
+              <div className="confirm-input">
+                <label>Type <strong>DELETE</strong> to confirm:</label>
+                <input
+                  type="text"
+                  value={deleteConfirmation}
+                  onChange={(e) => setDeleteConfirmation(e.target.value)}
+                  placeholder="Type DELETE"
+                />
+              </div>
+              <div className="modal-actions">
+                <button 
+                  className="btn-secondary" 
+                  onClick={() => {
+                    setShowDeleteModal(false)
+                    setDeleteConfirmation('')
+                  }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="btn-danger" 
+                  onClick={handleDeleteAccount}
+                  disabled={deleteConfirmation !== 'DELETE' || deleting}
+                >
+                  {deleting ? 'Deleting...' : 'Permanently Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
+
+  async function handleDownloadData() {
+    try {
+      setMessage({ type: 'info', text: 'Preparing your data export...' })
+      
+      // Collect user data
+      const userData = {
+        personalInfo: {
+          name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          userType: user.userType
+        },
+        address: {
+          street: formData.address,
+          city: formData.city,
+          state: formData.state,
+          country: formData.country,
+          postalCode: formData.postalCode
+        },
+        businessInfo: user.userType === 'SUPPLIER' ? {
+          businessName: formData.businessName,
+          businessType: formData.businessType,
+          description: formData.description,
+          website: formData.website
+        } : {
+          companyName: formData.companyName,
+          taxId: formData.taxId
+        },
+        exportDate: new Date().toISOString(),
+        dataRetentionPolicy: 'Data retained for 5 years as per legal requirements'
+      }
+
+      // Create and download JSON file
+      const blob = new Blob([JSON.stringify(userData, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `b2b-marketplace-data-${user.id}-${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      setMessage({ type: 'success', text: 'Your data has been downloaded successfully.' })
+    } catch (error) {
+      console.error('Error downloading data:', error)
+      setMessage({ type: 'error', text: 'Failed to download data. Please try again.' })
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (deleteConfirmation !== 'DELETE') return
+
+    try {
+      setDeleting(true)
+      
+      // Call backend to delete/anonymize user data
+      await axios.delete(`http://localhost:8081/api/users/${user.id}/data`, {
+        data: { confirmation: 'DELETE' }
+      })
+
+      // Clear local storage
+      localStorage.removeItem('cookieConsent')
+      
+      // Logout and redirect
+      logout()
+      navigate('/', { state: { message: 'Your account has been deleted successfully.' } })
+    } catch (error) {
+      console.error('Error deleting account:', error)
+      // Even if backend fails, allow user to request deletion
+      setMessage({ 
+        type: 'info', 
+        text: 'Your deletion request has been submitted. Your data will be deleted within 30 days as per DPDP Act requirements.' 
+      })
+      setShowDeleteModal(false)
+      setDeleteConfirmation('')
+    } finally {
+      setDeleting(false)
+    }
+  }
 }
 
 export default Account

@@ -3,19 +3,58 @@ import { categoryAPI } from '../services/api'
 import '../styles/FilterPanel.css'
 
 function FilterPanel({ filters, onFilterChange }) {
-  const [categories, setCategories] = useState([])
+  const [parentCategories, setParentCategories] = useState([])
+  const [subcategories, setSubcategories] = useState([])
+  const [selectedParentId, setSelectedParentId] = useState('')
+  const [loadingSubcategories, setLoadingSubcategories] = useState(false)
 
+  // Fetch top-level (parent) categories on mount
   useEffect(() => {
-    const fetchCategories = async () => {
-      const result = await categoryAPI.getAll()
+    const fetchParentCategories = async () => {
+      const result = await categoryAPI.getTopLevel()
       if (result.success && result.data) {
-        // Handle both { data: [...] } and direct array formats
         const categoriesData = result.data.data || result.data
-        setCategories(Array.isArray(categoriesData) ? categoriesData : [])
+        setParentCategories(Array.isArray(categoriesData) ? categoriesData : [])
       }
     }
-    fetchCategories()
+    fetchParentCategories()
   }, [])
+
+  // Fetch subcategories when parent category changes
+  useEffect(() => {
+    const fetchSubcategories = async () => {
+      if (selectedParentId) {
+        setLoadingSubcategories(true)
+        const result = await categoryAPI.getSubcategories(selectedParentId)
+        if (result.success && result.data) {
+          const subData = result.data.data || result.data
+          setSubcategories(Array.isArray(subData) ? subData : [])
+        } else {
+          setSubcategories([])
+        }
+        setLoadingSubcategories(false)
+      } else {
+        setSubcategories([])
+      }
+    }
+    fetchSubcategories()
+  }, [selectedParentId])
+
+  const handleParentCategoryChange = (parentId) => {
+    setSelectedParentId(parentId)
+    // When parent changes, set the category filter to parent, clear subcategory
+    onFilterChange({ ...filters, category: parentId, subcategory: '' })
+  }
+
+  const handleSubcategoryChange = (subcategoryId) => {
+    // If subcategory is selected, use it as the category filter
+    if (subcategoryId) {
+      onFilterChange({ ...filters, category: subcategoryId, subcategory: subcategoryId })
+    } else {
+      // If "All" selected, use parent category
+      onFilterChange({ ...filters, category: selectedParentId, subcategory: '' })
+    }
+  }
 
   const handlePriceChange = (field, value) => {
     onFilterChange({
@@ -44,14 +83,22 @@ function FilterPanel({ filters, onFilterChange }) {
   }
 
   const resetFilters = () => {
+    setSelectedParentId('')
+    setSubcategories([])
     onFilterChange({
       category: '',
+      subcategory: '',
       priceRange: { min: 0, max: 10000 },
       moq: { min: 0, max: 1000 },
       rating: 0,
       certifications: [],
-      location: ''
+      location: '',
+      supplierType: ''
     })
+  }
+
+  const handleSupplierTypeChange = (supplierType) => {
+    onFilterChange({ ...filters, supplierType })
   }
 
   return (
@@ -64,15 +111,38 @@ function FilterPanel({ filters, onFilterChange }) {
       <div className="filter-section">
         <h4>Category</h4>
         <select 
-          value={filters.category} 
-          onChange={(e) => handleCategoryChange(e.target.value)}
+          value={selectedParentId} 
+          onChange={(e) => handleParentCategoryChange(e.target.value)}
           className="filter-select"
         >
           <option value="">All Categories</option>
-          {categories.map(cat => (
+          {parentCategories.map(cat => (
             <option key={cat.id} value={cat.id}>{cat.name}</option>
           ))}
         </select>
+
+        {/* Subcategory dropdown - shows only when parent is selected */}
+        {selectedParentId && (
+          <div className="subcategory-section">
+            <label className="subcategory-label">Subcategory</label>
+            {loadingSubcategories ? (
+              <div className="loading-subcategories">Loading...</div>
+            ) : subcategories.length > 0 ? (
+              <select 
+                value={filters.subcategory || ''} 
+                onChange={(e) => handleSubcategoryChange(e.target.value)}
+                className="filter-select subcategory-select"
+              >
+                <option value="">All in {parentCategories.find(c => c.id == selectedParentId)?.name}</option>
+                {subcategories.map(sub => (
+                  <option key={sub.id} value={sub.id}>{sub.name}</option>
+                ))}
+              </select>
+            ) : (
+              <div className="no-subcategories">No subcategories available</div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="filter-section">
@@ -137,13 +207,33 @@ function FilterPanel({ filters, onFilterChange }) {
           onChange={(e) => handleLocationChange(e.target.value)}
           className="filter-select"
         >
-          <option value="">All Locations</option>
-          <option value="china">China</option>
-          <option value="usa">United States</option>
-          <option value="germany">Germany</option>
-          <option value="japan">Japan</option>
-          <option value="india">India</option>
-          <option value="uk">United Kingdom</option>
+          <option value="">All India</option>
+          <option value="maharashtra">Maharashtra</option>
+          <option value="karnataka">Karnataka</option>
+          <option value="tamil-nadu">Tamil Nadu</option>
+          <option value="gujarat">Gujarat</option>
+          <option value="delhi">Delhi NCR</option>
+          <option value="telangana">Telangana</option>
+          <option value="west-bengal">West Bengal</option>
+          <option value="uttar-pradesh">Uttar Pradesh</option>
+          <option value="rajasthan">Rajasthan</option>
+          <option value="kerala">Kerala</option>
+        </select>
+      </div>
+
+      <div className="filter-section">
+        <h4>Supplier Type</h4>
+        <select 
+          value={filters.supplierType || ''} 
+          onChange={(e) => handleSupplierTypeChange(e.target.value)}
+          className="filter-select"
+        >
+          <option value="">All Supplier Types</option>
+          <option value="manufacturer">Manufacturer</option>
+          <option value="distributor">Distributor</option>
+          <option value="wholesaler">Wholesaler</option>
+          <option value="trader">Trader</option>
+          <option value="dealer">Dealer</option>
         </select>
       </div>
 

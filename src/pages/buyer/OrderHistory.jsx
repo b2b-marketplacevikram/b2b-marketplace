@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { orderAPI } from '../../services/api'
 import '../../styles/OrderHistory.css'
 
 function OrderHistory() {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -20,12 +21,17 @@ function OrderHistory() {
   }, [user])
 
   const loadOrders = async () => {
-    if (!user) return
+    if (!user) {
+      setLoading(false)
+      return
+    }
 
     try {
       setLoading(true)
       setError('')
+      console.log('Fetching orders for user:', user.id)
       const result = await orderAPI.getByBuyer(user.id)
+      console.log('Orders result:', result)
       
       if (result.success && Array.isArray(result.data)) {
         // Sort by date (newest first)
@@ -41,6 +47,35 @@ function OrderHistory() {
       setError('Failed to load order history')
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Handle order card click - navigate to payment or order details
+  const handleOrderClick = (order) => {
+    // If payment is pending, go to payment instructions
+    if (order.paymentStatus === 'AWAITING_PAYMENT' || order.status === 'AWAITING_PAYMENT') {
+      // Determine payment type from payment method
+      const paymentMethod = order.paymentMethod?.toLowerCase() || ''
+      let paymentType = 'BANK_TRANSFER'
+      if (paymentMethod.includes('upi')) {
+        paymentType = 'UPI'
+      } else if (paymentMethod.includes('razorpay')) {
+        paymentType = 'URGENT_ONLINE'
+      } else if (paymentMethod.includes('stripe')) {
+        paymentType = 'STRIPE'
+      }
+      
+      navigate(`/orders/${order.orderNumber}/payment-instructions`, {
+        state: {
+          orderDetails: order,
+          paymentType: paymentType,
+          orderNumber: order.orderNumber,
+          totalAmount: order.totalAmount
+        }
+      })
+    } else {
+      // Otherwise go to order tracking/details
+      navigate(`/orders/${order.orderNumber}`)
     }
   }
 
@@ -103,7 +138,11 @@ function OrderHistory() {
   }
 
   const filteredOrders = orders.filter(order => {
-    const matchesStatus = filterStatus === 'all' || order.status === filterStatus
+    let matchesStatus = filterStatus === 'all' || order.status === filterStatus
+    // Special handling for AWAITING_PAYMENT - check both status and paymentStatus
+    if (filterStatus === 'AWAITING_PAYMENT') {
+      matchesStatus = order.status === 'AWAITING_PAYMENT' || order.paymentStatus === 'AWAITING_PAYMENT'
+    }
     const matchesSearch = searchTerm === '' || 
       order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.id?.toString().includes(searchTerm)
@@ -117,6 +156,11 @@ function OrderHistory() {
       </div>
     )
   }
+
+  // Debug: Log orders
+  console.log('Orders state:', orders)
+  console.log('Filtered orders:', filteredOrders)
+  console.log('User:', user)
 
   return (
     <div className="order-history-container">
@@ -148,6 +192,13 @@ function OrderHistory() {
             onClick={() => setFilterStatus('all')}
           >
             All Orders
+          </button>
+          <button
+            className={filterStatus === 'AWAITING_PAYMENT' ? 'active' : ''}
+            onClick={() => setFilterStatus('AWAITING_PAYMENT')}
+            style={filterStatus === 'AWAITING_PAYMENT' ? { background: '#ff9800', borderColor: '#ff9800' } : {}}
+          >
+            💳 Awaiting Payment
           </button>
           <button
             className={filterStatus === 'PENDING' ? 'active' : ''}
@@ -200,11 +251,34 @@ function OrderHistory() {
       ) : (
         <div className="orders-list">
           {filteredOrders.map((order) => (
-            <div key={order.id} className="order-card">
-              <div className="order-card-header">
+            <div 
+              key={order.id} 
+              className="order-card" 
+              style={{ minHeight: '150px', padding: '20px', cursor: 'pointer' }}
+              onClick={() => handleOrderClick(order)}
+            >
+              {/* Payment Required Banner */}
+              {(order.paymentStatus === 'AWAITING_PAYMENT' || order.status === 'AWAITING_PAYMENT') && (
+                <div style={{
+                  background: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)',
+                  color: 'white',
+                  padding: '10px 15px',
+                  marginBottom: '15px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <span>💳 <strong>Payment Required</strong> - Click to complete your payment</span>
+                  <span style={{ background: 'rgba(255,255,255,0.2)', padding: '5px 12px', borderRadius: '20px', fontSize: '12px' }}>
+                    Complete Payment →
+                  </span>
+                </div>
+              )}
+              <div className="order-card-header" style={{ display: 'flex', justifyContent: 'space-between', padding: '15px', background: '#f9f9f9' }}>
                 <div className="order-info">
-                  <h3>Order #{order.orderNumber || order.id}</h3>
-                  <p className="order-date">
+                  <h3 style={{ color: '#2c3e50', fontSize: '1.2rem', margin: 0 }}>Order #{order.orderNumber || order.id}</h3>
+                  <p className="order-date" style={{ color: '#7f8c8d', fontSize: '0.9rem', margin: '5px 0 0' }}>
                     Placed on {new Date(order.createdAt).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
@@ -214,19 +288,19 @@ function OrderHistory() {
                     })}
                   </p>
                 </div>
-                <div className="order-status-badges">
-                  <span className={`status-badge ${getStatusBadgeClass(order.status)}`}>
+                <div className="order-status-badges" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                  <span className={`status-badge ${getStatusBadgeClass(order.status)}`} style={{ padding: '5px 10px', borderRadius: '15px', background: order.paymentStatus === 'AWAITING_PAYMENT' ? '#fff3e0' : '#e3f2fd', color: order.paymentStatus === 'AWAITING_PAYMENT' ? '#e65100' : '#1976d2' }}>
                     {order.status}
                   </span>
-                  <span className={`payment-badge ${getPaymentStatusBadge(order.paymentStatus)}`}>
+                  <span className={`payment-badge ${getPaymentStatusBadge(order.paymentStatus)}`} style={{ padding: '5px 10px', borderRadius: '15px', background: '#fff3e0', color: '#e65100' }}>
                     {order.paymentStatus}
                   </span>
                 </div>
               </div>
 
-              <div className="order-card-body">
+              <div className="order-card-body" style={{ padding: '15px' }}>
                 <div className="order-items">
-                  <h4>Items ({order.items?.length || 0})</h4>
+                  <h4 style={{ color: '#333', margin: '0 0 10px' }}>Items ({order.items?.length || 0})</h4>
                   <div className="items-preview">
                     {order.items && order.items.slice(0, 3).map((item, index) => (
                       <div key={index} className="item-preview">
@@ -245,19 +319,19 @@ function OrderHistory() {
                 <div className="order-summary">
                   <div className="summary-row">
                     <span>Subtotal:</span>
-                    <span>${order.subtotal?.toFixed(2) || '0.00'}</span>
+                    <span>₹{order.subtotal?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || '0.00'}</span>
                   </div>
                   <div className="summary-row">
                     <span>Tax:</span>
-                    <span>${order.tax?.toFixed(2) || '0.00'}</span>
+                    <span>₹{order.tax?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || '0.00'}</span>
                   </div>
                   <div className="summary-row">
                     <span>Shipping:</span>
-                    <span>${order.shippingCost?.toFixed(2) || '0.00'}</span>
+                    <span>₹{order.shippingCost?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || '0.00'}</span>
                   </div>
                   <div className="summary-row total">
                     <span>Total:</span>
-                    <span>${order.totalAmount?.toFixed(2) || '0.00'}</span>
+                    <span>₹{order.totalAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || '0.00'}</span>
                   </div>
                 </div>
               </div>

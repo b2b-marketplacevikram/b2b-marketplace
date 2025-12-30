@@ -12,6 +12,7 @@
     "@stripe/react-stripe-js": "^5.4.1",
     "@stripe/stripe-js": "^8.5.3",
     "axios": "^1.13.2",
+    "qrcode.react": "^4.2.0",
     "razorpay": "^2.9.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

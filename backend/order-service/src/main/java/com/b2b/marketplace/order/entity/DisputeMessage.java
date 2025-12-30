@@ -1,0 +1,76 @@
+package com.b2b.marketplace.order.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+/**
+ * Dispute Message Entity - Communication thread for dispute resolution
+ */
+@Entity
+@Table(name = "dispute_messages")
+@Data
+public class DisputeMessage {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(name = "dispute_id")
+    private Long disputeId;
+    
+    @Column(name = "sender_id")
+    private Long senderId;
+    
+    @Column(name = "sender_name")
+    private String senderName;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sender_type")
+    private SenderType senderType;
+    
+    @Column(name = "message", columnDefinition = "TEXT")
+    private String message;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "message_type")
+    private MessageType messageType = MessageType.TEXT;
+    
+    // Attachments (JSON array of URLs)
+    @Column(name = "attachments", columnDefinition = "TEXT")
+    private String attachments;
+    
+    @Column(name = "is_internal")
+    private Boolean isInternal = false; // Internal notes not visible to buyer
+    
+    @Column(name = "is_read")
+    private Boolean isRead = false;
+    
+    @Column(name = "read_at")
+    private LocalDateTime readAt;
+    
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+    
+    public enum SenderType {
+        BUYER,
+        SUPPLIER,
+        SUPPORT,    // Platform support staff
+        SYSTEM      // Automated messages
+    }
+    
+    public enum MessageType {
+        TEXT,
+        STATUS_UPDATE,
+        REFUND_UPDATE,
+        ESCALATION,
+        RESOLUTION,
+        EVIDENCE,
+        SYSTEM
+    }
+}
