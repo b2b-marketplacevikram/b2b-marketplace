@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
 import { orderAPI } from '../../services/api'
 import { initiateRazorpayPayment, initiateStripePayment, initiateMockPayment, initiateNetBankingPayment } from '../../services/paymentGateway'
 import '../../styles/Checkout.css'
@@ -10,6 +11,7 @@ function Checkout() {
   const navigate = useNavigate()
   const { cart, getCartTotal, clearCart } = useCart()
   const { user } = useAuth()
+  const toast = useToast()
   const [step, setStep] = useState(1)
   const [processing, setProcessing] = useState(false)
   const [supplierBankDetails, setSupplierBankDetails] = useState(null)
@@ -151,7 +153,7 @@ function Checkout() {
   const handlePaymentFailure = (error) => {
     console.error('Payment failed:', error)
     setProcessing(false)
-    alert('Payment failed: ' + error.message + '\n\nPlease try again or choose a different payment method.')
+    toast.error('Payment failed: ' + error.message + '. Please try again or choose a different payment method.', '💳')
   }
 
   const handleSubmit = async (e) => {
@@ -223,7 +225,7 @@ function Checkout() {
         
         if (createdOrders.length === 0) {
           setProcessing(false)
-          alert('Failed to create orders. Please try again.')
+          toast.error('Failed to create orders. Please try again.', '❌')
           return
         }
         
@@ -242,7 +244,7 @@ function Checkout() {
       } catch (error) {
         console.error('Multi-supplier order error:', error)
         setProcessing(false)
-        alert('An error occurred while creating orders. Please try again.')
+        toast.error('An error occurred while creating orders. Please try again.', '❌')
         return
       }
     }
@@ -285,7 +287,7 @@ function Checkout() {
       
       if (!result.success) {
         setProcessing(false)
-        alert('Failed to create order: ' + result.message)
+        toast.error('Failed to create order: ' + result.message, '📦')
         return
       }
       
@@ -329,7 +331,7 @@ function Checkout() {
         } catch (stripeError) {
           console.error('Stripe error:', stripeError)
           setProcessing(false)
-          alert('Failed to initiate Stripe payment. Please try another payment method.')
+          toast.error('Failed to initiate Stripe payment. Please try another payment method.', '💳')
         }
       } else if (formData.paymentType === 'BANK_TRANSFER' || formData.paymentType === 'UPI') {
         // Bank Transfer / UPI: Show payment instructions
@@ -358,7 +360,7 @@ function Checkout() {
     } catch (error) {
       console.error('Order creation error:', error)
       setProcessing(false)
-      alert('An error occurred while creating your order. Please try again.')
+      toast.error('An error occurred while creating your order. Please try again.', '📦')
     }
   }
 
