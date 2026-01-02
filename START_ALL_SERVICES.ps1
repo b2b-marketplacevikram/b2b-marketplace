@@ -20,16 +20,30 @@ if ($mysqlProcess) {
     Write-Host "✅ MySQL started" -ForegroundColor Green
 }
 
-# Check Elasticsearch
-Write-Host "Checking Elasticsearch..." -ForegroundColor Yellow
+# Check Solr (Search Engine)
+Write-Host "Checking Solr..." -ForegroundColor Yellow
+$solrRunning = $false
 try {
-    $esResponse = Invoke-RestMethod -Uri "http://localhost:9200" -TimeoutSec 2 -ErrorAction Stop
-    Write-Host "✅ Elasticsearch is running (version $($esResponse.version.number))" -ForegroundColor Green
+    $solrResponse = Invoke-WebRequest -Uri "http://localhost:8983/solr/" -TimeoutSec 5 -ErrorAction Stop
+    if ($solrResponse.StatusCode -eq 200) {
+        $solrRunning = $true
+        Write-Host "✅ Solr is running on port 8983" -ForegroundColor Green
+    }
 } catch {
-    Write-Host "⚠️  Elasticsearch is not running!" -ForegroundColor Red
-    Write-Host "   Search functionality will not work without Elasticsearch." -ForegroundColor Yellow
-    Write-Host "   Run: .\SETUP_ELASTICSEARCH.ps1" -ForegroundColor Cyan
-    $response = Read-Host "`nContinue without Elasticsearch? (Y/N)"
+    # Try alternative check
+    $solrProcess = Get-Process -Name "java" -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like "*solr*" -or $_.MainWindowTitle -like "*Solr*" }
+    $netCheck = netstat -ano | Select-String ":8983.*LISTENING"
+    if ($netCheck) {
+        $solrRunning = $true
+        Write-Host "✅ Solr is running on port 8983" -ForegroundColor Green
+    }
+}
+
+if (-not $solrRunning) {
+    Write-Host "⚠️  Solr is not running!" -ForegroundColor Red
+    Write-Host "   Search functionality will not work without Solr." -ForegroundColor Yellow
+    Write-Host "   Run: .\SETUP_SOLR.ps1" -ForegroundColor Cyan
+    $response = Read-Host "`nContinue without Solr? (Y/N)"
     if ($response -ne 'Y' -and $response -ne 'y') {
         Write-Host "Exiting..." -ForegroundColor Red
         exit
@@ -45,7 +59,10 @@ $services = @(
     @{Name="Payment Service"; Port=8084; Path="payment-service"},
     @{Name="Cart Service"; Port=8085; Path="cart-service"},
     @{Name="Search Service"; Port=8086; Path="search-service"},
-    @{Name="Email Service"; Port=8087; Path="email-service"}
+    @{Name="Email Service"; Port=8087; Path="email-service"},
+    @{Name="Notification Service"; Port=8088; Path="notification-service"},
+    @{Name="Messaging Service"; Port=8089; Path="messaging-service"},
+    @{Name="Admin Service"; Port=8090; Path="admin-service"}
 )
 
 foreach ($svc in $services) {

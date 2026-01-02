@@ -1,0 +1,124 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      # Enable CORS globally
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "https://*.vercel.app"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowedHeaders: "*"
+            allowCredentials: true
+      
+      # Route definitions - all services behind single gateway
+      routes:
+        # User Service
+        - id: user-service
+          uri: ${USER_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/users/**, /api/auth/**, /api/suppliers/**, /api/buyers/**
+          filters:
+            - StripPrefix=0
+
+        # Product Service
+        - id: product-service
+          uri: ${PRODUCT_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/products/**, /api/categories/**, /api/inventory/**
+          filters:
+            - StripPrefix=0
+
+        # Order Service
+        - id: order-service
+          uri: ${ORDER_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/orders/**, /api/disputes/**, /api/refunds/**, /api/invoices/**, /api/bank-details/**
+          filters:
+            - StripPrefix=0
+
+        # Payment Service
+        - id: payment-service
+          uri: ${PAYMENT_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/payments/**, /api/razorpay/**
+          filters:
+            - StripPrefix=0
+
+        # Cart Service
+        - id: cart-service
+          uri: ${CART_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/api/cart/**
+          filters:
+            - StripPrefix=0
+
+        # Notification Service
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8086}
+          predicates:
+            - Path=/api/notifications/**, /ws/**
+          filters:
+            - StripPrefix=0
+
+        # Messaging Service
+        - id: messaging-service
+          uri: ${MESSAGING_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/messages/**, /api/conversations/**
+          filters:
+            - StripPrefix=0
+
+        # Email Service
+        - id: email-service
+          uri: ${EMAIL_SERVICE_URL:http://localhost:8088}
+          predicates:
+            - Path=/api/emails/**
+          filters:
+            - StripPrefix=0
+
+        # Search Service
+        - id: search-service
+          uri: ${SEARCH_SERVICE_URL:http://localhost:8089}
+          predicates:
+            - Path=/api/search/**
+          filters:
+            - StripPrefix=0
+
+        # Admin Service
+        - id: admin-service
+          uri: ${ADMIN_SERVICE_URL:http://localhost:8090}
+          predicates:
+            - Path=/api/admin/**, /api/analytics/**
+          filters:
+            - StripPrefix=0
+
+# Actuator endpoints for health checks
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+# Logging
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    reactor.netty: INFO

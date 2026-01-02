@@ -14,14 +14,45 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     console.log('AuthProvider useEffect running...')
-    // Check if user is logged in (from localStorage)
-    const storedUser = localStorage.getItem('user')
-    const token = localStorage.getItem('token')
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser))
+    
+    const validateToken = async () => {
+      const storedUser = localStorage.getItem('user')
+      const token = localStorage.getItem('token')
+      
+      if (storedUser && token) {
+        try {
+          // Validate token by making a request to the server
+          const response = await fetch('http://localhost:8081/api/users/me', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          
+          if (response.ok) {
+            // Token is valid, keep user logged in
+            setUser(JSON.parse(storedUser))
+            console.log('Token validated successfully')
+          } else {
+            // Token is invalid or expired, clear storage
+            console.log('Token invalid or expired, logging out')
+            localStorage.removeItem('user')
+            localStorage.removeItem('token')
+            setUser(null)
+          }
+        } catch (error) {
+          // Server not reachable or error, clear storage to be safe
+          console.log('Could not validate token, clearing session:', error.message)
+          localStorage.removeItem('user')
+          localStorage.removeItem('token')
+          setUser(null)
+        }
+      }
+      
+      setLoading(false)
+      console.log('AuthProvider initialized')
     }
-    setLoading(false)
-    console.log('AuthProvider initialized')
+    
+    validateToken()
   }, [])
 
   const login = async (credentials) => {
