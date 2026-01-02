@@ -58,11 +58,11 @@ $services = @(
     @{Name="Order Service"; Port=8083; Path="order-service"},
     @{Name="Payment Service"; Port=8084; Path="payment-service"},
     @{Name="Cart Service"; Port=8085; Path="cart-service"},
-    @{Name="Search Service"; Port=8086; Path="search-service"},
+    @{Name="Notification Service"; Port=8086; Path="notification-service"},
     @{Name="Email Service"; Port=8087; Path="email-service"},
-    @{Name="Notification Service"; Port=8088; Path="notification-service"},
-    @{Name="Messaging Service"; Port=8089; Path="messaging-service"},
-    @{Name="Admin Service"; Port=8090; Path="admin-service"}
+    @{Name="Admin Service"; Port=8088; Path="admin-service"},
+    @{Name="Search Service"; Port=8090; Path="search-service"},
+    @{Name="Messaging Service"; Port=8091; Path="messaging-service"}
 )
 
 foreach ($svc in $services) {
