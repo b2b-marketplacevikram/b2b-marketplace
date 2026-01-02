@@ -149,4 +149,36 @@ public class ProductController {
                     .body(ApiResponse.error(e.getMessage()));
         }
     }
+
+    /**
+     * Reduce stock for a product (called by Order Service after order is placed)
+     */
+    @PostMapping("/{id}/reduce-stock")
+    public ResponseEntity<ApiResponse<ProductResponse>> reduceStock(
+            @PathVariable Long id,
+            @RequestParam Integer quantity) {
+        try {
+            ProductResponse product = productService.reduceStock(id, quantity);
+            return ResponseEntity.ok(ApiResponse.success("Stock reduced successfully", product));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    /**
+     * Restore stock for a product (called when order is cancelled)
+     */
+    @PostMapping("/{id}/restore-stock")
+    public ResponseEntity<ApiResponse<ProductResponse>> restoreStock(
+            @PathVariable Long id,
+            @RequestParam Integer quantity) {
+        try {
+            ProductResponse product = productService.restoreStock(id, quantity);
+            return ResponseEntity.ok(ApiResponse.success("Stock restored successfully", product));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error(e.getMessage()));
+        }
+    }
 }

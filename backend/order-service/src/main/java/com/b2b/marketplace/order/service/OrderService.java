@@ -54,6 +54,37 @@ public class OrderService {
     private static final String EMAIL_SERVICE_URL = "http://localhost:8087/api/email";
     private static final String USER_SERVICE_URL = "http://localhost:8081/api/users";
     private static final String NOTIFICATION_SERVICE_URL = "http://localhost:8086/api/notifications";
+    private static final String PRODUCT_SERVICE_URL = "http://localhost:8082/api/products";
+
+    // ==================== Stock Management ====================
+    
+    /**
+     * Reduce stock for a product after order is placed
+     */
+    private void reduceProductStock(Long productId, Integer quantity) {
+        try {
+            String url = PRODUCT_SERVICE_URL + "/" + productId + "/reduce-stock?quantity=" + quantity;
+            restTemplate.postForEntity(url, null, Map.class);
+            log.info("Stock reduced for product {}: quantity={}", productId, quantity);
+        } catch (Exception e) {
+            log.error("Failed to reduce stock for product {}: {}", productId, e.getMessage());
+            throw new RuntimeException("Failed to reduce stock: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Restore stock for a product when order is cancelled
+     */
+    private void restoreProductStock(Long productId, Integer quantity) {
+        try {
+            String url = PRODUCT_SERVICE_URL + "/" + productId + "/restore-stock?quantity=" + quantity;
+            restTemplate.postForEntity(url, null, Map.class);
+            log.info("Stock restored for product {}: quantity={}", productId, quantity);
+        } catch (Exception e) {
+            log.error("Failed to restore stock for product {}: {}", productId, e.getMessage());
+            // Don't throw - this is a recovery operation
+        }
+    }
 
     // ==================== B2B Payment Methods ====================
     
@@ -330,6 +361,16 @@ public class OrderService {
 
         // Save order
         order = orderRepository.save(order);
+        
+        // Reduce stock for each ordered item
+        for (OrderItem item : order.getItems()) {
+            try {
+                reduceProductStock(item.getProductId(), item.getQuantity());
+            } catch (Exception e) {
+                log.error("Failed to reduce stock for product {}: {}", item.getProductId(), e.getMessage());
+                // Continue with order - stock reduction failure shouldn't block order
+            }
+        }
         
         // Send order confirmation email asynchronously
         try {
@@ -738,6 +779,16 @@ public class OrderService {
         }
         
         Order savedOrder = orderRepository.save(order);
+        
+        // Restore stock for all items in the cancelled order
+        for (OrderItem item : savedOrder.getItems()) {
+            try {
+                restoreProductStock(item.getProductId(), item.getQuantity());
+                log.info("Restored stock for product {} quantity {}", item.getProductId(), item.getQuantity());
+            } catch (Exception e) {
+                log.error("Failed to restore stock for product {}: {}", item.getProductId(), e.getMessage());
+            }
+        }
         
         // Send notifications
         try {

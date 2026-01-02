@@ -294,4 +294,51 @@ public class ProductService {
         response.setSortOrder(image.getSortOrder());
         return response;
     }
+
+    /**
+     * Reduce stock quantity for a product after order is placed
+     * @param productId The product ID
+     * @param quantity The quantity to reduce
+     * @return Updated product response
+     */
+    @Transactional
+    public ProductResponse reduceStock(Long productId, Integer quantity) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+        
+        int currentStock = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
+        
+        if (currentStock < quantity) {
+            throw new RuntimeException("Insufficient stock. Available: " + currentStock + ", Requested: " + quantity);
+        }
+        
+        product.setStockQuantity(currentStock - quantity);
+        product = productRepository.save(product);
+        
+        log.info("Stock reduced for product {}: {} -> {} (reduced by {})", 
+                productId, currentStock, product.getStockQuantity(), quantity);
+        
+        return mapToResponse(product);
+    }
+
+    /**
+     * Restore stock quantity for a product (e.g., when order is cancelled)
+     * @param productId The product ID
+     * @param quantity The quantity to restore
+     * @return Updated product response
+     */
+    @Transactional
+    public ProductResponse restoreStock(Long productId, Integer quantity) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+        
+        int currentStock = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
+        product.setStockQuantity(currentStock + quantity);
+        product = productRepository.save(product);
+        
+        log.info("Stock restored for product {}: {} -> {} (restored by {})", 
+                productId, currentStock, product.getStockQuantity(), quantity);
+        
+        return mapToResponse(product);
+    }
 }
