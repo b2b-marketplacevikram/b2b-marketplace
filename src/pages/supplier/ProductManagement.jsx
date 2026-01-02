@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
 import { productAPI, supplierAPI, categoryAPI } from '../../services/api'
 import '../../styles/ProductManagement.css'
 
@@ -8,6 +9,7 @@ function ProductManagement() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const toast = useToast()
   const [supplierId, setSupplierId] = useState(null)
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -108,12 +110,12 @@ function ProductManagement() {
         setFormData({ ...formData, categoryId: newCat.id.toString() })
         setShowNewSubcategoryInput(false)
         setNewSubcategoryName('')
-        alert('Subcategory created successfully!')
+        toast.success('Subcategory created successfully!', '📁')
       } else {
-        alert(result.message || 'Failed to create subcategory')
+        toast.error(result.message || 'Failed to create subcategory', '❌')
       }
     } catch (error) {
-      alert('Error creating subcategory: ' + error.message)
+      toast.error('Error creating subcategory: ' + error.message, '❌')
     }
     setCreatingSubcategory(false)
   }
@@ -169,7 +171,7 @@ function ProductManagement() {
     e.preventDefault()
     
     if (!supplierId) {
-      alert('Supplier ID not found. Please try refreshing the page.')
+      toast.error('Supplier ID not found. Please try refreshing the page.', '⚠️')
       return
     }
     
@@ -196,7 +198,7 @@ function ProductManagement() {
       // Update existing product
       const result = await productAPI.update(editingProduct.id, productData)
       if (result.success) {
-        alert('Product updated successfully!')
+        toast.success('Product updated successfully!', '✅')
         // Refresh product list
         const refreshResult = await productAPI.getBySupplier(supplierId)
         if (refreshResult.success && refreshResult.data?.data) {
@@ -213,13 +215,13 @@ function ProductManagement() {
           })))
         }
       } else {
-        alert(result.message || 'Failed to update product')
+        toast.error(result.message || 'Failed to update product', '❌')
       }
     } else {
       // Add new product
       const result = await productAPI.create(productData)
       if (result.success) {
-        alert('Product added successfully!')
+        toast.success('Product added successfully!', '🎉')
         // Refresh product list
         const refreshResult = await productAPI.getBySupplier(supplierId)
         if (refreshResult.success && refreshResult.data?.data) {
@@ -236,7 +238,7 @@ function ProductManagement() {
           })))
         }
       } else {
-        alert(result.message || 'Failed to create product')
+        toast.error(result.message || 'Failed to create product', '❌')
       }
     }
     resetForm()
@@ -311,9 +313,9 @@ function ProductManagement() {
       const result = await productAPI.delete(productId)
       if (result.success) {
         setProducts(products.filter(p => p.id !== productId))
-        alert('Product deleted successfully!')
+        toast.success('Product deleted successfully!', '🗑️')
       } else {
-        alert(result.message || 'Failed to delete product')
+        toast.error(result.message || 'Failed to delete product', '❌')
       }
     }
   }
@@ -474,8 +476,8 @@ function ProductManagement() {
                 <label>Stock Quantity *</label>
                 <input
                   type="number"
-                  name="stock"
-                  value={formData.stock}
+                  name="stockQuantity"
+                  value={formData.stockQuantity}
                   onChange={handleInputChange}
                   min="0"
                   required
@@ -574,7 +576,7 @@ function ProductManagement() {
                             }))
                           } catch (error) {
                             console.error('Error processing images:', error)
-                            alert('Failed to process some images')
+                            toast.error('Failed to process some images', '🖼️')
                           } finally {
                             setUploadingImage(false)
                             if (fileInputRef.current) {
