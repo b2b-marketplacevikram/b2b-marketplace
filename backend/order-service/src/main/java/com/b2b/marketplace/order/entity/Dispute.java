@@ -1,7 +1,6 @@
 package com.b2b.marketplace.order.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,7 +17,6 @@ import java.util.List;
  */
 @Entity
 @Table(name = "disputes")
-@Data
 public class Dispute {
     
     @Id
@@ -191,6 +189,311 @@ public class Dispute {
         if (resolutionDeadline == null) return 0;
         long days = java.time.temporal.ChronoUnit.DAYS.between(LocalDateTime.now(), resolutionDeadline);
         return Math.max(0, days);
+    }
+
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getTicketNumber() {
+        return ticketNumber;
+    }
+
+    public void setTicketNumber(String ticketNumber) {
+        this.ticketNumber = ticketNumber;
+    }
+
+    public Long getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
+    }
+
+    public String getOrderNumber() {
+        return orderNumber;
+    }
+
+    public void setOrderNumber(String orderNumber) {
+        this.orderNumber = orderNumber;
+    }
+
+    public Long getBuyerId() {
+        return buyerId;
+    }
+
+    public void setBuyerId(Long buyerId) {
+        this.buyerId = buyerId;
+    }
+
+    public String getBuyerName() {
+        return buyerName;
+    }
+
+    public void setBuyerName(String buyerName) {
+        this.buyerName = buyerName;
+    }
+
+    public String getBuyerEmail() {
+        return buyerEmail;
+    }
+
+    public void setBuyerEmail(String buyerEmail) {
+        this.buyerEmail = buyerEmail;
+    }
+
+    public String getBuyerPhone() {
+        return buyerPhone;
+    }
+
+    public void setBuyerPhone(String buyerPhone) {
+        this.buyerPhone = buyerPhone;
+    }
+
+    public Long getSupplierId() {
+        return supplierId;
+    }
+
+    public void setSupplierId(Long supplierId) {
+        this.supplierId = supplierId;
+    }
+
+    public String getSupplierName() {
+        return supplierName;
+    }
+
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
+    }
+
+    public DisputeType getDisputeType() {
+        return disputeType;
+    }
+
+    public void setDisputeType(DisputeType disputeType) {
+        this.disputeType = disputeType;
+    }
+
+    public DisputeStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(DisputeStatus status) {
+        this.status = status;
+    }
+
+    public DisputePriority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(DisputePriority priority) {
+        this.priority = priority;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getAffectedItems() {
+        return affectedItems;
+    }
+
+    public void setAffectedItems(String affectedItems) {
+        this.affectedItems = affectedItems;
+    }
+
+    public String getEvidenceUrls() {
+        return evidenceUrls;
+    }
+
+    public void setEvidenceUrls(String evidenceUrls) {
+        this.evidenceUrls = evidenceUrls;
+    }
+
+    public Boolean getRefundRequested() {
+        return refundRequested;
+    }
+
+    public void setRefundRequested(Boolean refundRequested) {
+        this.refundRequested = refundRequested;
+    }
+
+    public BigDecimal getRefundAmount() {
+        return refundAmount;
+    }
+
+    public void setRefundAmount(BigDecimal refundAmount) {
+        this.refundAmount = refundAmount;
+    }
+
+    public RefundStatus getRefundStatus() {
+        return refundStatus;
+    }
+
+    public void setRefundStatus(RefundStatus refundStatus) {
+        this.refundStatus = refundStatus;
+    }
+
+    public LocalDateTime getRefundProcessedAt() {
+        return refundProcessedAt;
+    }
+
+    public void setRefundProcessedAt(LocalDateTime refundProcessedAt) {
+        this.refundProcessedAt = refundProcessedAt;
+    }
+
+    public ResolutionType getResolutionType() {
+        return resolutionType;
+    }
+
+    public void setResolutionType(ResolutionType resolutionType) {
+        this.resolutionType = resolutionType;
+    }
+
+    public String getResolutionNotes() {
+        return resolutionNotes;
+    }
+
+    public void setResolutionNotes(String resolutionNotes) {
+        this.resolutionNotes = resolutionNotes;
+    }
+
+    public Long getResolvedBy() {
+        return resolvedBy;
+    }
+
+    public void setResolvedBy(Long resolvedBy) {
+        this.resolvedBy = resolvedBy;
+    }
+
+    public String getResolvedByName() {
+        return resolvedByName;
+    }
+
+    public void setResolvedByName(String resolvedByName) {
+        this.resolvedByName = resolvedByName;
+    }
+
+    public LocalDateTime getAcknowledgmentDeadline() {
+        return acknowledgmentDeadline;
+    }
+
+    public void setAcknowledgmentDeadline(LocalDateTime acknowledgmentDeadline) {
+        this.acknowledgmentDeadline = acknowledgmentDeadline;
+    }
+
+    public LocalDateTime getAcknowledgedAt() {
+        return acknowledgedAt;
+    }
+
+    public void setAcknowledgedAt(LocalDateTime acknowledgedAt) {
+        this.acknowledgedAt = acknowledgedAt;
+    }
+
+    public LocalDateTime getResolutionDeadline() {
+        return resolutionDeadline;
+    }
+
+    public void setResolutionDeadline(LocalDateTime resolutionDeadline) {
+        this.resolutionDeadline = resolutionDeadline;
+    }
+
+    public LocalDateTime getResolvedAt() {
+        return resolvedAt;
+    }
+
+    public void setResolvedAt(LocalDateTime resolvedAt) {
+        this.resolvedAt = resolvedAt;
+    }
+
+    public LocalDateTime getEscalatedAt() {
+        return escalatedAt;
+    }
+
+    public void setEscalatedAt(LocalDateTime escalatedAt) {
+        this.escalatedAt = escalatedAt;
+    }
+
+    public Integer getEscalationLevel() {
+        return escalationLevel;
+    }
+
+    public void setEscalationLevel(Integer escalationLevel) {
+        this.escalationLevel = escalationLevel;
+    }
+
+    public String getEscalationReason() {
+        return escalationReason;
+    }
+
+    public void setEscalationReason(String escalationReason) {
+        this.escalationReason = escalationReason;
+    }
+
+    public Integer getBuyerSatisfactionRating() {
+        return buyerSatisfactionRating;
+    }
+
+    public void setBuyerSatisfactionRating(Integer buyerSatisfactionRating) {
+        this.buyerSatisfactionRating = buyerSatisfactionRating;
+    }
+
+    public String getBuyerFeedback() {
+        return buyerFeedback;
+    }
+
+    public void setBuyerFeedback(String buyerFeedback) {
+        this.buyerFeedback = buyerFeedback;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public LocalDateTime getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(LocalDateTime closedAt) {
+        this.closedAt = closedAt;
+    }
+
+    public List<DisputeMessage> getMessages() {
+        return messages;
+    }
+
+    public void setMessages(List<DisputeMessage> messages) {
+        this.messages = messages;
     }
     
     // Enums

@@ -228,3 +228,102 @@
 .btn-add-url:hover {
   background: #444;
 }
+
+/* Subcategory Selection Styles */
+.subcategory-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.subcategory-selection select {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+}
+
+.new-subcategory-input {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px dashed #ddd;
+}
+
+.new-subcategory-input input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.new-subcategory-input input:focus {
+  border-color: #ff6b35;
+  outline: none;
+}
+
+.btn-create-subcategory {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.btn-create-subcategory:hover:not(:disabled) {
+  background: #218838;
+}
+
+.btn-create-subcategory:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.btn-cancel-subcategory {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-cancel-subcategory:hover {
+  background: #c82333;
+}
+
+.subcategory-hint {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 8px;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: #1976d2;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: inherit;
+  padding: 0;
+  margin-left: 5px;
+}
+
+.link-button:hover {
+  color: #1565c0;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { supplierAPI } from '../../services/api'
-import apiService from '../../services/api'
+import { supplierAPI, orderAPI } from '../../services/api'
 import './PaymentVerification.css'
 
 function PaymentVerification() {
@@ -42,8 +41,12 @@ function PaymentVerification() {
   const fetchAwaitingOrders = async () => {
     try {
       setLoading(true)
-      const response = await apiService.get(`/orders/supplier/${supplierId}/awaiting-verification`)
-      setOrders(response.data || [])
+      const result = await orderAPI.getAwaitingVerification(supplierId)
+      if (result.success) {
+        setOrders(result.data || [])
+      } else {
+        setMessage({ type: 'error', text: 'Failed to load orders' })
+      }
     } catch (error) {
       console.error('Error fetching orders:', error)
       setMessage({ type: 'error', text: 'Failed to load orders' })
@@ -60,24 +63,30 @@ function PaymentVerification() {
 
     try {
       setVerifying(true)
-      await apiService.post(`/orders/${order.orderNumber}/verify-payment`, {
-        verified: approved,
-        verifiedBy: user?.email || user?.name || 'Supplier',
+      const result = await orderAPI.verifyPayment(order.orderNumber, {
+        approved: approved,
         rejectionReason: approved ? null : rejectionReason.trim()
       })
 
-      setMessage({ 
-        type: 'success', 
-        text: approved 
-          ? `Payment verified for order ${order.orderNumber}. Order will now be processed.`
-          : `Payment rejected for order ${order.orderNumber}. Buyer has been notified.`
-      })
+      if (result.success) {
+        setMessage({ 
+          type: 'success', 
+          text: approved 
+            ? `Payment verified for order ${order.orderNumber}. Order will now be processed.`
+            : `Payment rejected for order ${order.orderNumber}. Buyer has been notified.`
+        })
 
-      // Remove from list
-      setOrders(prev => prev.filter(o => o.orderNumber !== order.orderNumber))
-      setSelectedOrder(null)
-      setShowRejectModal(false)
-      setRejectionReason('')
+        // Remove from list
+        setOrders(prev => prev.filter(o => o.orderNumber !== order.orderNumber))
+        setSelectedOrder(null)
+        setShowRejectModal(false)
+        setRejectionReason('')
+      } else {
+        setMessage({ 
+          type: 'error', 
+          text: result.message || 'Failed to verify payment. Please try again.' 
+        })
+      }
     } catch (error) {
       console.error('Error verifying payment:', error)
       setMessage({ 

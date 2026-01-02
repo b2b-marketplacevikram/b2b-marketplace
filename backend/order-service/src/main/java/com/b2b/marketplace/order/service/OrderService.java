@@ -17,7 +17,8 @@ import com.b2b.marketplace.order.repository.BuyerRepository;
 import com.b2b.marketplace.order.repository.OrderRepository;
 import com.b2b.marketplace.order.repository.SupplierRepository;
 import com.b2b.marketplace.order.repository.SupplierBankDetailsRepository;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,8 +34,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 public class OrderService {
+    
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
 
     @Autowired
     private OrderRepository orderRepository;
@@ -280,6 +282,7 @@ public class OrderService {
             OrderItem item = new OrderItem();
             item.setProductId(itemRequest.getProductId());
             item.setProductName(itemRequest.getProductName());
+            item.setProductImage(itemRequest.getProductImage());
             item.setQuantity(itemRequest.getQuantity());
             item.setUnitPrice(itemRequest.getUnitPrice());
             item.setTotalPrice(itemRequest.getTotalPrice());
@@ -561,6 +564,7 @@ public class OrderService {
                     itemResponse.setId(item.getId());
                     itemResponse.setProductId(item.getProductId());
                     itemResponse.setProductName(item.getProductName());
+                    itemResponse.setProductImage(item.getProductImage());
                     itemResponse.setQuantity(item.getQuantity());
                     itemResponse.setUnitPrice(item.getUnitPrice());
                     itemResponse.setTotalPrice(item.getTotalPrice());

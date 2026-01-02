@@ -61,6 +61,8 @@ function Header() {
                 {user && <Link to="/quotes">My Quotes</Link>}
                 {user && <Link to="/orders">My Orders</Link>}
                 {user && <Link to="/disputes">My Tickets</Link>}
+                {user && <Link to="/buyer/refunds">Refunds</Link>}
+                {user && <Link to="/buyer/bank-details">Bank Details</Link>}
                 {user && <Link to="/messages">Messages</Link>}
                 {user && <Link to="/account">My Account</Link>}
               </>

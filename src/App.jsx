@@ -24,6 +24,8 @@ import PaymentInstructions from './pages/buyer/PaymentInstructions'
 import MultiSupplierPaymentInstructions from './pages/buyer/MultiSupplierPaymentInstructions'
 import QuotesList from './pages/buyer/QuotesList'
 import QuoteToOrder from './pages/buyer/QuoteToOrder'
+import BuyerBankDetails from './pages/buyer/BuyerBankDetails'
+import RefundRequests from './pages/buyer/RefundRequests'
 
 // Quote Pages
 import QuoteDetail from './pages/QuoteDetail'
@@ -94,6 +96,10 @@ function App() {
                     <Route path="/order-tracking/:orderId" element={<OrderTracking />} />
                     <Route path="/messages" element={<Messages />} />
                     <Route path="/account" element={<Account />} />
+                    
+                    {/* Buyer Bank Details & Refunds */}
+                    <Route path="/buyer/bank-details" element={<BuyerBankDetails />} />
+                    <Route path="/buyer/refunds" element={<RefundRequests />} />
                     
                     {/* Bundle Routes */}
                     <Route path="/bundles" element={<BundleList />} />

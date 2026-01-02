@@ -19,6 +19,20 @@ function DisputeDetail() {
     proposedRefundAmount: '',
     message: ''
   })
+  
+  // Modal states
+  const [showEscalateModal, setShowEscalateModal] = useState(false)
+  const [escalateReason, setEscalateReason] = useState('')
+  const [showAcceptModal, setShowAcceptModal] = useState(false)
+  const [acceptData, setAcceptData] = useState({ rating: 5, feedback: '' })
+  
+  // Toast notification state
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type })
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 5000)
+  }
 
   useEffect(() => {
     if (!user) {
@@ -130,74 +144,75 @@ function DisputeDetail() {
         setResolutionData({ proposedResolution: '', proposedRefundAmount: '', message: '' })
         fetchDispute()
       } else {
-        alert(result.message || 'Failed to submit response')
+        showToast(result.message || 'Failed to submit response', 'error')
       }
     } catch (err) {
-      alert('Error submitting response')
+      showToast('Error submitting response', 'error')
     } finally {
       setSubmitting(false)
     }
   }
 
   const handleEscalate = async () => {
-    const reason = prompt('Please provide a reason for escalation:')
-    if (!reason) return
+    if (!escalateReason.trim()) {
+      showToast('Please provide a reason for escalation', 'error')
+      return
+    }
 
     setSubmitting(true)
     try {
-      const result = await disputeAPI.escalate(ticketNumber, reason)
+      const result = await disputeAPI.escalate(ticketNumber, escalateReason)
       if (result.success) {
+        setShowEscalateModal(false)
+        setEscalateReason('')
         fetchDispute()
-        alert('Dispute escalated to ' + result.data?.data?.escalationLevelLabel)
+        showToast('Dispute escalated to ' + result.data?.data?.escalationLevelLabel, 'success')
       } else {
-        alert(result.message || 'Failed to escalate')
+        showToast(result.message || 'Failed to escalate', 'error')
       }
     } catch (err) {
-      alert('Error escalating dispute')
+      showToast('Error escalating dispute', 'error')
     } finally {
       setSubmitting(false)
     }
   }
 
   const handleAcceptResolution = async () => {
-    const rating = prompt('Rate the resolution (1-5 stars):')
-    const ratingNum = rating ? parseInt(rating) : null
-    if (ratingNum && (ratingNum < 1 || ratingNum > 5)) {
-      alert('Please enter a rating between 1 and 5')
+    if (acceptData.rating < 1 || acceptData.rating > 5) {
+      showToast('Please select a rating between 1 and 5', 'error')
       return
     }
 
-    const feedback = prompt('Any feedback? (optional)')
-
     setSubmitting(true)
     try {
-      const result = await disputeAPI.acceptResolution(ticketNumber, ratingNum, feedback)
+      const result = await disputeAPI.acceptResolution(ticketNumber, acceptData.rating, acceptData.feedback)
       if (result.success) {
+        setShowAcceptModal(false)
+        setAcceptData({ rating: 5, feedback: '' })
         fetchDispute()
-        alert('Resolution accepted. Dispute resolved.')
+        showToast('Resolution accepted. Dispute resolved!', 'success')
       } else {
-        alert(result.message || 'Failed to accept resolution')
+        showToast(result.message || 'Failed to accept resolution', 'error')
       }
     } catch (err) {
-      alert('Error accepting resolution')
+      showToast('Error accepting resolution', 'error')
     } finally {
       setSubmitting(false)
     }
   }
 
   const handleClose = async () => {
-    if (!window.confirm('Are you sure you want to close this dispute?')) return
-
     setSubmitting(true)
     try {
       const result = await disputeAPI.close(ticketNumber)
       if (result.success) {
         fetchDispute()
+        showToast('Dispute closed successfully', 'success')
       } else {
-        alert(result.message || 'Failed to close dispute')
+        showToast(result.message || 'Failed to close dispute', 'error')
       }
     } catch (err) {
-      alert('Error closing dispute')
+      showToast('Error closing dispute', 'error')
     } finally {
       setSubmitting(false)
     }
@@ -336,10 +351,10 @@ function DisputeDetail() {
                 
                 {isBuyer && dispute.status === 'RESOLUTION_PROPOSED' && (
                   <div className="resolution-actions">
-                    <button className="btn-accept" onClick={handleAcceptResolution} disabled={submitting}>
+                    <button className="btn-accept" onClick={() => setShowAcceptModal(true)} disabled={submitting}>
                       ✓ Accept Resolution
                     </button>
-                    <button className="btn-escalate" onClick={handleEscalate} disabled={submitting}>
+                    <button className="btn-escalate" onClick={() => setShowEscalateModal(true)} disabled={submitting}>
                       ⬆️ Escalate
                     </button>
                   </div>
@@ -472,12 +487,12 @@ function DisputeDetail() {
                 <>
                   {['SUPPLIER_RESPONDED', 'UNDER_REVIEW'].includes(dispute.status) && 
                    !dispute.resolutionType && dispute.escalationLevel < 3 && (
-                    <button className="btn-escalate" onClick={handleEscalate} disabled={submitting}>
+                    <button className="btn-escalate" onClick={() => setShowEscalateModal(true)} disabled={submitting}>
                       ⬆️ Escalate Dispute
                     </button>
                   )}
                   {dispute.status === 'RESOLUTION_PROPOSED' && (
-                    <button className="btn-accept" onClick={handleAcceptResolution} disabled={submitting}>
+                    <button className="btn-accept" onClick={() => setShowAcceptModal(true)} disabled={submitting}>
                       ✓ Accept Resolution
                     </button>
                   )}
@@ -561,6 +576,121 @@ function DisputeDetail() {
           </div>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`toast-notification toast-${toast.type}`}>
+          <div className="toast-icon">
+            {toast.type === 'success' && '✓'}
+            {toast.type === 'error' && '✕'}
+            {toast.type === 'warning' && '⚠'}
+            {toast.type === 'info' && 'ℹ'}
+          </div>
+          <div className="toast-content">
+            <p className="toast-message">{toast.message}</p>
+          </div>
+          <button className="toast-close" onClick={() => setToast({ ...toast, show: false })}>×</button>
+        </div>
+      )}
+
+      {/* Accept Resolution Modal */}
+      {showAcceptModal && (
+        <div className="modal-overlay" onClick={() => setShowAcceptModal(false)}>
+          <div className="modal-content rating-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>✅ Accept Resolution</h2>
+              <button className="close-btn" onClick={() => setShowAcceptModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="rating-section">
+                <label>Rate the resolution</label>
+                <div className="star-rating">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      className={`star-btn ${acceptData.rating >= star ? 'active' : ''}`}
+                      onClick={() => setAcceptData({ ...acceptData, rating: star })}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+                <span className="rating-text">
+                  {acceptData.rating === 1 && 'Poor'}
+                  {acceptData.rating === 2 && 'Fair'}
+                  {acceptData.rating === 3 && 'Good'}
+                  {acceptData.rating === 4 && 'Very Good'}
+                  {acceptData.rating === 5 && 'Excellent'}
+                </span>
+              </div>
+              <div className="form-group">
+                <label>Feedback (optional)</label>
+                <textarea
+                  value={acceptData.feedback}
+                  onChange={(e) => setAcceptData({ ...acceptData, feedback: e.target.value })}
+                  placeholder="Share your experience with how this dispute was handled..."
+                  rows="3"
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={() => setShowAcceptModal(false)}>
+                Cancel
+              </button>
+              <button 
+                className="btn-submit btn-success" 
+                onClick={handleAcceptResolution}
+                disabled={submitting}
+              >
+                {submitting ? 'Submitting...' : 'Accept & Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Escalate Modal */}
+      {showEscalateModal && (
+        <div className="modal-overlay" onClick={() => setShowEscalateModal(false)}>
+          <div className="modal-content escalate-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header warning">
+              <h2>⬆️ Escalate Dispute</h2>
+              <button className="close-btn" onClick={() => setShowEscalateModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="escalation-info">
+                <p>
+                  Escalating will raise this dispute to the next level for priority handling.
+                  Current level: <strong>Level {dispute?.escalationLevel || 0}</strong>
+                </p>
+              </div>
+              <div className="form-group">
+                <label>Reason for Escalation *</label>
+                <textarea
+                  value={escalateReason}
+                  onChange={(e) => setEscalateReason(e.target.value)}
+                  placeholder="Please explain why you're escalating this dispute..."
+                  rows="4"
+                  required
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={() => setShowEscalateModal(false)}>
+                Cancel
+              </button>
+              <button 
+                className="btn-submit btn-warning" 
+                onClick={handleEscalate}
+                disabled={submitting || !escalateReason.trim()}
+              >
+                {submitting ? 'Escalating...' : 'Escalate Dispute'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

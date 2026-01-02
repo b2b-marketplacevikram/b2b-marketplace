@@ -104,11 +104,39 @@ CREATE TABLE products (
     weight DECIMAL(10,2),
     dimensions VARCHAR(100),
     origin_country VARCHAR(100),
+    country_of_origin VARCHAR(100),
     brand VARCHAR(100),
     model VARCHAR(50),
     origin VARCHAR(100),
     warranty_period VARCHAR(100),
     certifications JSON,
+    
+    -- GST Compliance Fields
+    mrp DECIMAL(10,2),
+    hsn_code VARCHAR(10),
+    gst_rate DECIMAL(5,2),
+    
+    -- Legal Metrology Fields
+    manufacturing_date DATE,
+    expiry_date DATE,
+    net_quantity VARCHAR(50),
+    weight_kg DECIMAL(10,3),
+    length_cm DECIMAL(10,2),
+    width_cm DECIMAL(10,2),
+    height_cm DECIMAL(10,2),
+    
+    -- Warranty Information
+    warranty_months INT,
+    warranty_terms VARCHAR(500),
+    
+    -- Manufacturer Details
+    manufacturer_name VARCHAR(200),
+    manufacturer_address VARCHAR(500),
+    
+    -- Importer Details (for imported products)
+    importer_name VARCHAR(200),
+    importer_address VARCHAR(500),
+    
     status ENUM('ACTIVE', 'INACTIVE', 'OUT_OF_STOCK', 'DISCONTINUED') DEFAULT 'ACTIVE',
     is_active BOOLEAN DEFAULT TRUE,
     is_featured BOOLEAN DEFAULT FALSE,
@@ -475,4 +503,243 @@ CREATE TABLE coupon_usage (
     INDEX idx_coupon (coupon_id),
     INDEX idx_user (user_id),
     INDEX idx_order (order_id)
+);
+
+-- ==================== Quote (RFQ) Tables ====================
+
+-- Quotes Table (Request for Quote)
+CREATE TABLE quotes (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    quote_number VARCHAR(50) UNIQUE NOT NULL,
+    buyer_id BIGINT NOT NULL,
+    buyer_name VARCHAR(255),
+    buyer_email VARCHAR(255),
+    buyer_phone VARCHAR(50),
+    buyer_company VARCHAR(255),
+    supplier_id BIGINT NOT NULL,
+    supplier_name VARCHAR(255),
+    status ENUM('PENDING','SUPPLIER_RESPONDED','BUYER_REVIEWING','NEGOTIATING','APPROVED','CONVERTED','REJECTED','CANCELLED','EXPIRED') DEFAULT 'PENDING',
+    original_total DECIMAL(12,2),
+    quoted_total DECIMAL(12,2),
+    final_total DECIMAL(12,2),
+    discount_percentage DECIMAL(5,2) DEFAULT 0,
+    discount_amount DECIMAL(12,2) DEFAULT 0,
+    currency VARCHAR(10) DEFAULT 'INR',
+    shipping_address TEXT,
+    buyer_requirements TEXT,
+    supplier_notes TEXT,
+    rejection_reason TEXT,
+    validity_days INT DEFAULT 15,
+    valid_until DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    responded_at TIMESTAMP NULL,
+    approved_at TIMESTAMP NULL,
+    converted_to_order_at TIMESTAMP NULL,
+    order_id BIGINT,
+    order_number VARCHAR(50),
+    is_from_cart BOOLEAN DEFAULT FALSE,
+    negotiation_count INT DEFAULT 0,
+    INDEX idx_buyer (buyer_id),
+    INDEX idx_supplier (supplier_id),
+    INDEX idx_status (status),
+    INDEX idx_quote_number (quote_number)
+);
+
+-- Quote Items Table
+CREATE TABLE quote_items (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    quote_id BIGINT NOT NULL,
+    product_id BIGINT NOT NULL,
+    product_name VARCHAR(500) NOT NULL,
+    product_image TEXT,
+    quantity INT NOT NULL,
+    requested_quantity INT,
+    original_price DECIMAL(12,2) NOT NULL,
+    quoted_price DECIMAL(12,2),
+    final_price DECIMAL(12,2),
+    unit VARCHAR(50) DEFAULT 'piece',
+    specifications TEXT,
+    supplier_notes TEXT,
+    lead_time_days INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE,
+    INDEX idx_quote (quote_id)
+);
+
+-- Quote Messages Table (Negotiation thread)
+CREATE TABLE quote_messages (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    quote_id BIGINT NOT NULL,
+    sender_id BIGINT NOT NULL,
+    sender_name VARCHAR(255),
+    sender_type ENUM('BUYER','SUPPLIER','SYSTEM') NOT NULL,
+    message TEXT NOT NULL,
+    message_type ENUM('TEXT','PRICE_UPDATE','COUNTER_OFFER','APPROVAL','REJECTION','EXTENSION','SYSTEM') DEFAULT 'TEXT',
+    attachment_url TEXT,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE,
+    INDEX idx_quote (quote_id)
+);
+
+-- ==================== Dispute Tables ====================
+
+-- Disputes Table (Compliant with Indian E-Commerce Laws - Consumer Protection Act 2019)
+CREATE TABLE disputes (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    ticket_number VARCHAR(50) NOT NULL UNIQUE,
+    order_id BIGINT NOT NULL,
+    order_number VARCHAR(50) NOT NULL,
+    buyer_id BIGINT NOT NULL,
+    buyer_name VARCHAR(255),
+    buyer_email VARCHAR(255),
+    buyer_phone VARCHAR(50),
+    supplier_id BIGINT NOT NULL,
+    supplier_name VARCHAR(255),
+    
+    -- Dispute Details
+    dispute_type ENUM('PRODUCT_NOT_AS_DESCRIBED', 'PRODUCT_DAMAGED', 'PRODUCT_NOT_DELIVERED', 
+                      'WRONG_PRODUCT', 'QUALITY_ISSUE', 'QUANTITY_MISMATCH', 'LATE_DELIVERY',
+                      'PAYMENT_ISSUE', 'REFUND_NOT_RECEIVED', 'OTHER') NOT NULL,
+    status ENUM('OPEN', 'ACKNOWLEDGED', 'IN_PROGRESS', 'AWAITING_BUYER', 'AWAITING_SUPPLIER',
+                'ESCALATED', 'RESOLVED', 'CLOSED', 'REJECTED') DEFAULT 'OPEN',
+    priority ENUM('LOW', 'MEDIUM', 'HIGH', 'CRITICAL') DEFAULT 'MEDIUM',
+    subject VARCHAR(255) NOT NULL,
+    description TEXT,
+    
+    -- Affected Items (JSON array of product IDs/names)
+    affected_items TEXT,
+    evidence_urls TEXT, -- JSON array of image/document URLs
+    
+    -- Refund Request
+    refund_requested BOOLEAN DEFAULT FALSE,
+    refund_amount DECIMAL(12, 2),
+    refund_status ENUM('NOT_REQUESTED', 'PENDING', 'APPROVED', 'PROCESSING', 'COMPLETED', 'REJECTED'),
+    refund_processed_at TIMESTAMP NULL,
+    
+    -- Resolution Details
+    resolution_type ENUM('REFUND_FULL', 'REFUND_PARTIAL', 'REPLACEMENT', 'CREDIT_NOTE', 
+                         'NO_ACTION', 'OTHER'),
+    resolution_notes TEXT,
+    resolved_by BIGINT,
+    resolved_by_name VARCHAR(255),
+    
+    -- Compliance Tracking (Indian E-Commerce Rules 2020)
+    acknowledgment_deadline TIMESTAMP, -- 48 hours from creation
+    acknowledged_at TIMESTAMP NULL,
+    resolution_deadline TIMESTAMP, -- 30 days from creation
+    resolved_at TIMESTAMP NULL,
+    escalated_at TIMESTAMP NULL,
+    escalation_level INT DEFAULT 0, -- 0=None, 1=Senior Support, 2=Management, 3=Legal/Nodal Officer
+    escalation_reason VARCHAR(500),
+    
+    -- Satisfaction
+    buyer_satisfaction_rating INT CHECK (buyer_satisfaction_rating BETWEEN 1 AND 5),
+    buyer_feedback TEXT,
+    
+    -- Timestamps
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    closed_at TIMESTAMP NULL,
+    
+    INDEX idx_ticket (ticket_number),
+    INDEX idx_order (order_id),
+    INDEX idx_buyer (buyer_id),
+    INDEX idx_supplier (supplier_id),
+    INDEX idx_status (status),
+    INDEX idx_created (created_at)
+);
+
+-- Dispute Messages Table (Communication thread for dispute resolution)
+CREATE TABLE dispute_messages (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    dispute_id BIGINT NOT NULL,
+    sender_id BIGINT,
+    sender_name VARCHAR(255),
+    sender_type ENUM('BUYER', 'SUPPLIER', 'ADMIN', 'SYSTEM') NOT NULL,
+    message TEXT NOT NULL,
+    message_type ENUM('TEXT', 'EVIDENCE', 'RESOLUTION_OFFER', 'STATUS_UPDATE', 'SYSTEM') DEFAULT 'TEXT',
+    attachments TEXT, -- JSON array of URLs
+    is_internal BOOLEAN DEFAULT FALSE, -- Internal notes not visible to buyer
+    is_read BOOLEAN DEFAULT FALSE,
+    read_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (dispute_id) REFERENCES disputes(id) ON DELETE CASCADE,
+    INDEX idx_dispute (dispute_id),
+    INDEX idx_sender (sender_id)
+);
+
+-- ==================== Bank Details Tables ====================
+
+-- Buyer Bank Details Table (for refunds)
+CREATE TABLE buyer_bank_details (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    buyer_id BIGINT NOT NULL,
+    bank_name VARCHAR(255) NOT NULL,
+    account_holder_name VARCHAR(255) NOT NULL,
+    account_number VARCHAR(50) NOT NULL,
+    ifsc_code VARCHAR(20),
+    upi_id VARCHAR(100),
+    swift_code VARCHAR(20),
+    branch_name VARCHAR(255),
+    is_primary BOOLEAN DEFAULT TRUE,
+    is_verified BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (buyer_id) REFERENCES buyers(id) ON DELETE CASCADE,
+    INDEX idx_buyer (buyer_id)
+);
+
+-- Supplier Bank Details Table (for payouts)
+CREATE TABLE supplier_bank_details (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    supplier_id BIGINT NOT NULL,
+    bank_name VARCHAR(255) NOT NULL,
+    account_holder_name VARCHAR(255) NOT NULL,
+    account_number VARCHAR(50) NOT NULL,
+    ifsc_code VARCHAR(20) NOT NULL,
+    upi_id VARCHAR(100),
+    swift_code VARCHAR(20),
+    branch_name VARCHAR(255),
+    branch_address VARCHAR(500),
+    is_primary BOOLEAN DEFAULT TRUE,
+    is_verified BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE,
+    INDEX idx_supplier (supplier_id)
+);
+
+-- ==================== Refund Tables ====================
+
+-- Refund Requests Table
+CREATE TABLE refund_requests (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id BIGINT NOT NULL,
+    order_number VARCHAR(50) NOT NULL,
+    buyer_id BIGINT NOT NULL,
+    supplier_id BIGINT NOT NULL,
+    refund_amount DECIMAL(12, 2) NOT NULL,
+    refund_method ENUM('ORIGINAL_PAYMENT', 'BANK_TRANSFER', 'WALLET_CREDIT') NOT NULL,
+    reason VARCHAR(500) NOT NULL,
+    status ENUM('PENDING', 'BUYER_CONFIRMED', 'PROCESSING', 'COMPLETED', 'REJECTED') DEFAULT 'PENDING',
+    buyer_bank_details_id BIGINT,
+    original_payment_ref VARCHAR(255),
+    supplier_notes VARCHAR(500),
+    buyer_notes VARCHAR(500),
+    initiated_by BIGINT,
+    confirmed_at TIMESTAMP NULL,
+    processed_at TIMESTAMP NULL,
+    completed_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE RESTRICT,
+    FOREIGN KEY (buyer_id) REFERENCES buyers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (buyer_bank_details_id) REFERENCES buyer_bank_details(id) ON DELETE SET NULL,
+    INDEX idx_order (order_id),
+    INDEX idx_buyer (buyer_id),
+    INDEX idx_supplier (supplier_id),
+    INDEX idx_status (status)
 );

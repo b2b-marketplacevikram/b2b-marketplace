@@ -13,6 +13,7 @@ function Cart() {
   const [quoteProducts, setQuoteProducts] = useState([])
   const [quoteSupplierId, setQuoteSupplierId] = useState(null)
   const [quoteSupplierName, setQuoteSupplierName] = useState('')
+  const [showSupplierSelection, setShowSupplierSelection] = useState(false)
 
   const handleQuantityChange = (itemId, newQuantity) => {
     const item = cart.find(i => i.id === itemId)
@@ -44,6 +45,9 @@ function Cart() {
     return Object.values(grouped)
   }
 
+  const supplierGroups = getItemsBySupplier()
+  const hasMultipleSuppliers = supplierGroups.length > 1
+
   const handleRequestQuote = (supplierId, supplierName, items) => {
     if (!user) {
       navigate('/login')
@@ -63,6 +67,7 @@ function Cart() {
     })))
     setQuoteSupplierId(supplierId)
     setQuoteSupplierName(supplierName)
+    setShowSupplierSelection(false)
     setShowQuoteModal(true)
   }
 
@@ -71,15 +76,18 @@ function Cart() {
       navigate('/login')
       return
     }
-    // For all items, group by first supplier or show modal for each
-    const suppliers = getItemsBySupplier()
-    if (suppliers.length === 1) {
-      handleRequestQuote(suppliers[0].supplierId, suppliers[0].supplierName, suppliers[0].items)
+    
+    if (supplierGroups.length === 1) {
+      // Single supplier - request quote directly
+      handleRequestQuote(supplierGroups[0].supplierId, supplierGroups[0].supplierName, supplierGroups[0].items)
     } else {
-      // Request quote from first supplier for simplicity
-      // In a more complete implementation, show a dialog to choose supplier
-      handleRequestQuote(suppliers[0].supplierId, suppliers[0].supplierName, suppliers[0].items)
+      // Multiple suppliers - show selection dialog
+      setShowSupplierSelection(true)
     }
+  }
+
+  const getSupplierTotal = (items) => {
+    return items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
   }
 
   if (cart.length === 0) {
@@ -175,8 +183,15 @@ function Cart() {
               className="btn-request-quote"
               onClick={handleRequestQuoteAll}
             >
-              📋 Request Quote
+              📋 Request Quote {hasMultipleSuppliers && `(${supplierGroups.length} Suppliers)`}
             </button>
+
+            {hasMultipleSuppliers && (
+              <p className="multi-supplier-note">
+                ⚠️ Cart has products from {supplierGroups.length} suppliers. 
+                Separate quotes will be created for each supplier.
+              </p>
+            )}
 
             <div className="secure-checkout">
               <span>🔒 Secure Checkout</span>
@@ -187,6 +202,46 @@ function Cart() {
             </Link>
           </div>
         </div>
+
+        {/* Supplier-wise breakdown for multi-vendor cart */}
+        {hasMultipleSuppliers && (
+          <div className="supplier-breakdown">
+            <h2>Products by Supplier</h2>
+            {supplierGroups.map(group => (
+              <div key={group.supplierId} className="supplier-group">
+                <div className="supplier-group-header">
+                  <div className="supplier-info">
+                    <h3>🏭 {group.supplierName}</h3>
+                    <span className="item-count">{group.items.length} item(s)</span>
+                  </div>
+                  <div className="supplier-actions">
+                    <span className="group-total">
+                      ₹{getSupplierTotal(group.items).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </span>
+                    <button 
+                      className="btn-quote-supplier"
+                      onClick={() => handleRequestQuote(group.supplierId, group.supplierName, group.items)}
+                    >
+                      📋 Request Quote
+                    </button>
+                  </div>
+                </div>
+                <div className="supplier-items">
+                  {group.items.map(item => (
+                    <div key={item.id} className="supplier-item">
+                      <img src={item.image} alt={item.name} />
+                      <span className="item-name">{item.name}</span>
+                      <span className="item-qty">Qty: {item.quantity}</span>
+                      <span className="item-price">
+                        ₹{(item.price * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="cart-features">
           <div className="feature">
@@ -222,6 +277,50 @@ function Cart() {
         supplierName={quoteSupplierName}
         isFromCart={true}
       />
+
+      {/* Supplier Selection Modal for Multi-Vendor Quote */}
+      {showSupplierSelection && (
+        <div className="modal-overlay" onClick={() => setShowSupplierSelection(false)}>
+          <div className="supplier-selection-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>📋 Request Quote by Supplier</h2>
+              <button className="close-btn" onClick={() => setShowSupplierSelection(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p className="modal-info">
+                Your cart contains products from <strong>{supplierGroups.length} different suppliers</strong>. 
+                In B2B, quotes are negotiated separately with each supplier. 
+                Please select which supplier to request a quote from:
+              </p>
+              <div className="supplier-list">
+                {supplierGroups.map(group => (
+                  <div key={group.supplierId} className="supplier-option">
+                    <div className="supplier-details">
+                      <h3>🏭 {group.supplierName}</h3>
+                      <p>{group.items.length} product(s) • ₹{getSupplierTotal(group.items).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                      <ul className="product-list">
+                        {group.items.slice(0, 3).map(item => (
+                          <li key={item.id}>{item.name} (×{item.quantity})</li>
+                        ))}
+                        {group.items.length > 3 && <li>+{group.items.length - 3} more...</li>}
+                      </ul>
+                    </div>
+                    <button 
+                      className="btn-select-supplier"
+                      onClick={() => handleRequestQuote(group.supplierId, group.supplierName, group.items)}
+                    >
+                      Request Quote
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="modal-footer">
+                <p className="tip">💡 Tip: You can request quotes from all suppliers one by one for best pricing.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

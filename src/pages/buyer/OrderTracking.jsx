@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useLocation, useSearchParams, useNavigate } from 'react-router-dom'
-import { orderAPI, disputeAPI } from '../../services/api'
+import { orderAPI, disputeAPI, productAPI } from '../../services/api'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
 import BankTransferDetails from '../../components/BankTransferDetails'
@@ -26,7 +26,16 @@ function OrderTracking() {
   })
   const [submittingDispute, setSubmittingDispute] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [productImages, setProductImages] = useState({}) // Map of productId -> imageUrl
   const cartCleared = useRef(false)
+  
+  // Toast notification state
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type })
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 5000)
+  }
   
   // Check if redirected from successful payment (URL param, state, or sessionStorage)
   const paymentSuccessFromUrl = searchParams.get('payment') === 'success'
@@ -131,14 +140,15 @@ function OrderTracking() {
             date: apiOrder.createdAt ? new Date(apiOrder.createdAt).toLocaleDateString() : 'N/A',
             status: apiOrder.status.toLowerCase(),
             paymentConfirmed: isPaymentConfirmed,
+            paymentStatus: isPaymentConfirmed ? 'PAID' : apiOrder.paymentStatus,
             estimatedDelivery: apiOrder.estimatedDeliveryDate || 'TBD',
             items: apiOrder.items.map(item => ({
               id: item.productId,
               name: item.productName,
               quantity: item.quantity,
               price: item.unitPrice,
-              image: '/images/product-placeholder.jpg',
-              supplier: 'Supplier'
+              image: item.productImage || null,
+              supplier: item.supplierName || 'Supplier'
             })),
             shippingAddress: apiOrder.shippingAddress || 'Address not available',
             paymentMethod: apiOrder.paymentMethod || 'N/A',
@@ -160,6 +170,41 @@ function OrderTracking() {
 
     fetchOrder()
   }, [orderId, location.state])
+
+  // Fetch product images for items that don't have them
+  useEffect(() => {
+    const fetchProductImages = async () => {
+      if (!order?.items) return
+      
+      const itemsWithoutImages = order.items.filter(item => !item.image)
+      if (itemsWithoutImages.length === 0) return
+      
+      const imageMap = {}
+      await Promise.all(
+        itemsWithoutImages.map(async (item) => {
+          try {
+            const result = await productAPI.getById(item.id)
+            // Handle nested data structure from ApiResponse wrapper
+            const productData = result.data?.data || result.data
+            if (productData) {
+              const imageUrl = productData.images?.[0]?.imageUrl || productData.imageUrl
+              if (imageUrl) {
+                imageMap[item.id] = imageUrl
+              }
+            }
+          } catch (error) {
+            console.error(`Error fetching image for product ${item.id}:`, error)
+          }
+        })
+      )
+      
+      if (Object.keys(imageMap).length > 0) {
+        setProductImages(prev => ({ ...prev, ...imageMap }))
+      }
+    }
+    
+    fetchProductImages()
+  }, [order?.items])
 
   const handleContactSupport = () => {
     alert('Support contact form would open here')
@@ -195,14 +240,14 @@ function OrderTracking() {
 
       if (result.success && result.data?.data) {
         setShowDisputeModal(false)
-        alert(`Dispute ticket created: ${result.data.data.ticketNumber}`)
-        navigate(`/disputes/${result.data.data.ticketNumber}`)
+        showToast(`Dispute ticket created successfully! Ticket #${result.data.data.ticketNumber}`, 'success')
+        setTimeout(() => navigate(`/disputes/${result.data.data.ticketNumber}`), 2000)
       } else {
-        alert(result.message || 'Failed to create dispute')
+        showToast(result.message || 'Failed to create dispute', 'error')
       }
     } catch (err) {
       console.error('Error creating dispute:', err)
-      alert('Error creating dispute. Please try again.')
+      showToast('Error creating dispute. Please try again.', 'error')
     } finally {
       setSubmittingDispute(false)
     }
@@ -233,6 +278,22 @@ function OrderTracking() {
 
   return (
     <div className="order-tracking-page">
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`toast-notification toast-${toast.type}`}>
+          <div className="toast-icon">
+            {toast.type === 'success' && '✓'}
+            {toast.type === 'error' && '✕'}
+            {toast.type === 'warning' && '⚠'}
+            {toast.type === 'info' && 'ℹ'}
+          </div>
+          <div className="toast-content">
+            <p className="toast-message">{toast.message}</p>
+          </div>
+          <button className="toast-close" onClick={() => setToast({ ...toast, show: false })}>×</button>
+        </div>
+      )}
+
       {showConfirmation && (
         <div className="order-confirmation-banner">
           <div className="confirmation-content">
@@ -308,9 +369,18 @@ function OrderTracking() {
           <div className="order-items-card">
             <h2>Order Items</h2>
             <div className="items-list">
-              {order.items.map(item => (
+              {order.items.map(item => {
+                const imageUrl = item.image || productImages[item.id];
+                return (
                 <div key={item.id} className="order-item">
-                  <img src={item.image} alt={item.name} />
+                  <div className="item-image">
+                    {imageUrl ? (
+                      <img src={imageUrl} alt={item.name} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                    ) : null}
+                    <div className="image-placeholder" style={{ display: imageUrl ? 'none' : 'flex' }}>
+                      {item.name?.charAt(0) || 'P'}
+                    </div>
+                  </div>
                   <div className="item-details">
                     <h3>{item.name}</h3>
                     <p className="item-supplier">Supplier: {item.supplier}</p>
@@ -320,7 +390,7 @@ function OrderTracking() {
                     ₹{(item.price * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
 
             <div className="order-summary">
@@ -366,7 +436,7 @@ function OrderTracking() {
             <div className="info-card">
               <h3>Payment Method</h3>
               <p>{order.paymentMethod || order.paymentType || 'N/A'}</p>
-              {order.paymentStatus === 'CONFIRMED' || order.paymentStatus === 'PAID' ? (
+              {order.paymentConfirmed || order.paymentStatus === 'PAID' ? (
                 <p className="payment-status confirmed">✓ Payment Confirmed</p>
               ) : order.paymentStatus === 'PENDING' ? (
                 <p className="payment-status pending">⏳ Payment Pending</p>
@@ -375,7 +445,7 @@ function OrderTracking() {
               ) : order.paymentStatus === 'FAILED' ? (
                 <p className="payment-status failed">✕ Payment Failed</p>
               ) : (
-                <p className="payment-status pending">⏳ {order.paymentStatus || 'Payment Pending'}</p>
+                <p className="payment-status confirmed">✓ Payment Confirmed</p>
               )}
             </div>
 

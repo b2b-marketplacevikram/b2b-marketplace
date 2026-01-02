@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { productAPI, supplierAPI } from '../../services/api'
+import { productAPI, supplierAPI, categoryAPI } from '../../services/api'
 import '../../styles/ProductManagement.css'
 
 function ProductManagement() {
@@ -15,6 +15,16 @@ function ProductManagement() {
   const [editingProduct, setEditingProduct] = useState(null)
   const [uploadingImage, setUploadingImage] = useState(false)
   const fileInputRef = useRef(null)
+  
+  // Category management
+  const [categories, setCategories] = useState([])
+  const [parentCategories, setParentCategories] = useState([])
+  const [subcategories, setSubcategories] = useState([])
+  const [selectedParentId, setSelectedParentId] = useState('')
+  const [showNewSubcategoryInput, setShowNewSubcategoryInput] = useState(false)
+  const [newSubcategoryName, setNewSubcategoryName] = useState('')
+  const [creatingSubcategory, setCreatingSubcategory] = useState(false)
+  
   const [formData, setFormData] = useState({
     name: '',
     categoryId: '',
@@ -30,6 +40,83 @@ function ProductManagement() {
     leadTimeDays: '',
     imageUrls: []
   })
+
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const result = await categoryAPI.getAll()
+      if (result.success && result.data) {
+        const allCategories = result.data.data || result.data || []
+        setCategories(allCategories)
+        
+        // Separate parent categories (no parent_id) and subcategories
+        const parents = allCategories.filter(c => !c.parentId && !c.parent_id)
+        setParentCategories(parents)
+      }
+    }
+    fetchCategories()
+  }, [])
+
+  // Update subcategories when parent changes
+  useEffect(() => {
+    if (selectedParentId) {
+      const subs = categories.filter(c => 
+        (c.parentId === parseInt(selectedParentId)) || 
+        (c.parent_id === parseInt(selectedParentId))
+      )
+      setSubcategories(subs)
+    } else {
+      setSubcategories([])
+    }
+  }, [selectedParentId, categories])
+
+  const handleParentCategoryChange = (e) => {
+    const parentId = e.target.value
+    setSelectedParentId(parentId)
+    setFormData({ ...formData, categoryId: parentId }) // Default to parent if no subcategory
+    setShowNewSubcategoryInput(false)
+    setNewSubcategoryName('')
+  }
+
+  const handleSubcategoryChange = (e) => {
+    const value = e.target.value
+    if (value === 'new') {
+      setShowNewSubcategoryInput(true)
+    } else {
+      setShowNewSubcategoryInput(false)
+      setFormData({ ...formData, categoryId: value || selectedParentId })
+    }
+  }
+
+  const handleCreateSubcategory = async () => {
+    if (!newSubcategoryName.trim() || !selectedParentId) return
+    
+    setCreatingSubcategory(true)
+    try {
+      const result = await categoryAPI.create({
+        name: newSubcategoryName.trim(),
+        parentId: parseInt(selectedParentId),
+        slug: newSubcategoryName.trim().toLowerCase().replace(/\s+/g, '-'),
+        isActive: true
+      })
+      
+      if (result.success && result.data) {
+        const newCat = result.data.data || result.data
+        // Add to categories list
+        setCategories([...categories, newCat])
+        // Select the new subcategory
+        setFormData({ ...formData, categoryId: newCat.id.toString() })
+        setShowNewSubcategoryInput(false)
+        setNewSubcategoryName('')
+        alert('Subcategory created successfully!')
+      } else {
+        alert(result.message || 'Failed to create subcategory')
+      }
+    } catch (error) {
+      alert('Error creating subcategory: ' + error.message)
+    }
+    setCreatingSubcategory(false)
+  }
 
   useEffect(() => {
     const fetchSupplierAndProducts = async () => {
@@ -171,6 +258,9 @@ function ProductManagement() {
       leadTimeDays: '',
       imageUrls: []
     })
+    setSelectedParentId('')
+    setShowNewSubcategoryInput(false)
+    setNewSubcategoryName('')
     setEditingProduct(null)
     setShowForm(false)
   }
@@ -180,10 +270,26 @@ function ProductManagement() {
     const result = await productAPI.getById(product.id)
     if (result.success && result.data?.data) {
       const p = result.data.data
+      
+      // Find the category and its parent
+      const productCategory = categories.find(c => c.id === p.categoryId)
+      let parentId = ''
+      
+      if (productCategory) {
+        if (productCategory.parentId || productCategory.parent_id) {
+          // This is a subcategory, get its parent
+          parentId = (productCategory.parentId || productCategory.parent_id).toString()
+        } else {
+          // This is a parent category
+          parentId = productCategory.id.toString()
+        }
+      }
+      
+      setSelectedParentId(parentId)
       setEditingProduct(product)
       setFormData({
         name: p.name,
-        categoryId: p.categoryId || '',
+        categoryId: p.categoryId?.toString() || '',
         unitPrice: p.unitPrice,
         moq: p.moq,
         stockQuantity: p.stockQuantity,
@@ -264,20 +370,81 @@ function ProductManagement() {
               <div className="form-group">
                 <label>Category *</label>
                 <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
+                  name="parentCategory"
+                  value={selectedParentId}
+                  onChange={handleParentCategoryChange}
                   required
                 >
                   <option value="">Select Category</option>
-                  <option value="Electronics">Electronics</option>
-                  <option value="Machinery">Machinery</option>
-                  <option value="Textiles">Textiles</option>
-                  <option value="Construction">Construction</option>
-                  <option value="Chemicals">Chemicals</option>
+                  {parentCategories.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
                 </select>
               </div>
             </div>
+
+            {/* Subcategory Selection */}
+            {selectedParentId && (
+              <div className="form-row">
+                <div className="form-group full-width">
+                  <label>Subcategory</label>
+                  <div className="subcategory-selection">
+                    <select
+                      name="subcategory"
+                      value={showNewSubcategoryInput ? 'new' : formData.categoryId}
+                      onChange={handleSubcategoryChange}
+                    >
+                      <option value="">-- Use Parent Category --</option>
+                      {subcategories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                      <option value="new">+ Create New Subcategory</option>
+                    </select>
+                    
+                    {showNewSubcategoryInput && (
+                      <div className="new-subcategory-input">
+                        <input
+                          type="text"
+                          placeholder="Enter new subcategory name..."
+                          value={newSubcategoryName}
+                          onChange={(e) => setNewSubcategoryName(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className="btn-create-subcategory"
+                          onClick={handleCreateSubcategory}
+                          disabled={creatingSubcategory || !newSubcategoryName.trim()}
+                        >
+                          {creatingSubcategory ? 'Creating...' : 'Create'}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-cancel-subcategory"
+                          onClick={() => {
+                            setShowNewSubcategoryInput(false)
+                            setNewSubcategoryName('')
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  {subcategories.length === 0 && !showNewSubcategoryInput && (
+                    <p className="subcategory-hint">
+                      No subcategories exist for this category. 
+                      <button 
+                        type="button" 
+                        className="link-button"
+                        onClick={() => setShowNewSubcategoryInput(true)}
+                      >
+                        Create one?
+                      </button>
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="form-row">
               <div className="form-group">

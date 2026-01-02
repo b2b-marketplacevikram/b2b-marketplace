@@ -1,7 +1,6 @@
 package com.b2b.marketplace.order.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,7 +9,6 @@ import java.util.List;
 
 @Entity
 @Table(name = "orders")
-@Data
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -152,7 +150,6 @@ public class Order {
     @Column(name = "place_of_supply", length = 100)
     private String placeOfSupply;
     
-    // Tax breakdown for GST compliance
     @Column(name = "cgst_amount", precision = 12, scale = 2)
     private BigDecimal cgstAmount = BigDecimal.ZERO;
     
@@ -166,10 +163,164 @@ public class Order {
     private BigDecimal cessAmount = BigDecimal.ZERO;
     
     @Column(name = "is_same_state")
-    private Boolean isSameState = true; // Determines CGST+SGST vs IGST
+    private Boolean isSameState = true;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
+
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getOrderNumber() { return orderNumber; }
+    public void setOrderNumber(String orderNumber) { this.orderNumber = orderNumber; }
+
+    public Long getBuyerId() { return buyerId; }
+    public void setBuyerId(Long buyerId) { this.buyerId = buyerId; }
+
+    public Long getSupplierId() { return supplierId; }
+    public void setSupplierId(Long supplierId) { this.supplierId = supplierId; }
+
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
+
+    public PaymentStatus getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(PaymentStatus paymentStatus) { this.paymentStatus = paymentStatus; }
+
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+
+    public BigDecimal getSubtotal() { return subtotal; }
+    public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
+
+    public BigDecimal getTaxAmount() { return taxAmount; }
+    public void setTaxAmount(BigDecimal taxAmount) { this.taxAmount = taxAmount; }
+
+    public BigDecimal getShippingCost() { return shippingCost; }
+    public void setShippingCost(BigDecimal shippingCost) { this.shippingCost = shippingCost; }
+
+    public BigDecimal getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+
+    public String getCurrency() { return currency; }
+    public void setCurrency(String currency) { this.currency = currency; }
+
+    public String getShippingAddress() { return shippingAddress; }
+    public void setShippingAddress(String shippingAddress) { this.shippingAddress = shippingAddress; }
+
+    public String getBillingAddress() { return billingAddress; }
+    public void setBillingAddress(String billingAddress) { this.billingAddress = billingAddress; }
+
+    public String getTrackingNumber() { return trackingNumber; }
+    public void setTrackingNumber(String trackingNumber) { this.trackingNumber = trackingNumber; }
+
+    public String getShippingMethod() { return shippingMethod; }
+    public void setShippingMethod(String shippingMethod) { this.shippingMethod = shippingMethod; }
+
+    public LocalDate getEstimatedDeliveryDate() { return estimatedDeliveryDate; }
+    public void setEstimatedDeliveryDate(LocalDate estimatedDeliveryDate) { this.estimatedDeliveryDate = estimatedDeliveryDate; }
+
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public LocalDateTime getConfirmedAt() { return confirmedAt; }
+    public void setConfirmedAt(LocalDateTime confirmedAt) { this.confirmedAt = confirmedAt; }
+
+    public LocalDateTime getShippedAt() { return shippedAt; }
+    public void setShippedAt(LocalDateTime shippedAt) { this.shippedAt = shippedAt; }
+
+    public LocalDateTime getDeliveredAt() { return deliveredAt; }
+    public void setDeliveredAt(LocalDateTime deliveredAt) { this.deliveredAt = deliveredAt; }
+
+    public LocalDateTime getCancelledAt() { return cancelledAt; }
+    public void setCancelledAt(LocalDateTime cancelledAt) { this.cancelledAt = cancelledAt; }
+
+    public LocalDateTime getRefundedAt() { return refundedAt; }
+    public void setRefundedAt(LocalDateTime refundedAt) { this.refundedAt = refundedAt; }
+
+    public String getCancellationReason() { return cancellationReason; }
+    public void setCancellationReason(String cancellationReason) { this.cancellationReason = cancellationReason; }
+
+    public String getRefundReason() { return refundReason; }
+    public void setRefundReason(String refundReason) { this.refundReason = refundReason; }
+
+    public BigDecimal getRefundAmount() { return refundAmount; }
+    public void setRefundAmount(BigDecimal refundAmount) { this.refundAmount = refundAmount; }
+
+    public String getPoNumber() { return poNumber; }
+    public void setPoNumber(String poNumber) { this.poNumber = poNumber; }
+
+    public PaymentType getPaymentType() { return paymentType; }
+    public void setPaymentType(PaymentType paymentType) { this.paymentType = paymentType; }
+
+    public String getPaymentReference() { return paymentReference; }
+    public void setPaymentReference(String paymentReference) { this.paymentReference = paymentReference; }
+
+    public String getPaymentProofUrl() { return paymentProofUrl; }
+    public void setPaymentProofUrl(String paymentProofUrl) { this.paymentProofUrl = paymentProofUrl; }
+
+    public LocalDateTime getPaymentVerifiedAt() { return paymentVerifiedAt; }
+    public void setPaymentVerifiedAt(LocalDateTime paymentVerifiedAt) { this.paymentVerifiedAt = paymentVerifiedAt; }
+
+    public Long getPaymentVerifiedBy() { return paymentVerifiedBy; }
+    public void setPaymentVerifiedBy(Long paymentVerifiedBy) { this.paymentVerifiedBy = paymentVerifiedBy; }
+
+    public Integer getCreditTermsDays() { return creditTermsDays; }
+    public void setCreditTermsDays(Integer creditTermsDays) { this.creditTermsDays = creditTermsDays; }
+
+    public BigDecimal getCreditLimit() { return creditLimit; }
+    public void setCreditLimit(BigDecimal creditLimit) { this.creditLimit = creditLimit; }
+
+    public BigDecimal getPaymentCommissionRate() { return paymentCommissionRate; }
+    public void setPaymentCommissionRate(BigDecimal paymentCommissionRate) { this.paymentCommissionRate = paymentCommissionRate; }
+
+    public BigDecimal getPaymentCommissionAmount() { return paymentCommissionAmount; }
+    public void setPaymentCommissionAmount(BigDecimal paymentCommissionAmount) { this.paymentCommissionAmount = paymentCommissionAmount; }
+
+    public CommissionPaidBy getPaymentCommissionPaidBy() { return paymentCommissionPaidBy; }
+    public void setPaymentCommissionPaidBy(CommissionPaidBy paymentCommissionPaidBy) { this.paymentCommissionPaidBy = paymentCommissionPaidBy; }
+
+    public Boolean getIsUrgent() { return isUrgent; }
+    public void setIsUrgent(Boolean isUrgent) { this.isUrgent = isUrgent; }
+
+    public String getInvoiceNumber() { return invoiceNumber; }
+    public void setInvoiceNumber(String invoiceNumber) { this.invoiceNumber = invoiceNumber; }
+
+    public LocalDateTime getInvoiceDate() { return invoiceDate; }
+    public void setInvoiceDate(LocalDateTime invoiceDate) { this.invoiceDate = invoiceDate; }
+
+    public String getBuyerGstin() { return buyerGstin; }
+    public void setBuyerGstin(String buyerGstin) { this.buyerGstin = buyerGstin; }
+
+    public String getSupplierGstin() { return supplierGstin; }
+    public void setSupplierGstin(String supplierGstin) { this.supplierGstin = supplierGstin; }
+
+    public String getPlaceOfSupply() { return placeOfSupply; }
+    public void setPlaceOfSupply(String placeOfSupply) { this.placeOfSupply = placeOfSupply; }
+
+    public BigDecimal getCgstAmount() { return cgstAmount; }
+    public void setCgstAmount(BigDecimal cgstAmount) { this.cgstAmount = cgstAmount; }
+
+    public BigDecimal getSgstAmount() { return sgstAmount; }
+    public void setSgstAmount(BigDecimal sgstAmount) { this.sgstAmount = sgstAmount; }
+
+    public BigDecimal getIgstAmount() { return igstAmount; }
+    public void setIgstAmount(BigDecimal igstAmount) { this.igstAmount = igstAmount; }
+
+    public BigDecimal getCessAmount() { return cessAmount; }
+    public void setCessAmount(BigDecimal cessAmount) { this.cessAmount = cessAmount; }
+
+    public Boolean getIsSameState() { return isSameState; }
+    public void setIsSameState(Boolean isSameState) { this.isSameState = isSameState; }
+
+    public List<OrderItem> getItems() { return items; }
+    public void setItems(List<OrderItem> items) { this.items = items; }
 
     @PrePersist
     protected void onCreate() {
@@ -187,14 +338,14 @@ public class Order {
     }
 
     public enum PaymentStatus {
-        PENDING, AWAITING_VERIFICATION, PAID, FAILED, REFUNDED
+        PENDING, AWAITING_VERIFICATION, PAID, FAILED, REFUND_PENDING, REFUNDED
     }
 
     public enum PaymentType {
-        URGENT_ONLINE,      // Razorpay/Stripe with 2% commission
-        BANK_TRANSFER,      // NEFT/RTGS/IMPS - 0% commission
-        UPI,                // UPI - 0% commission
-        CREDIT_TERMS        // NET 30/60/90 for trusted buyers
+        URGENT_ONLINE,
+        BANK_TRANSFER,
+        UPI,
+        CREDIT_TERMS
     }
 
     public enum CommissionPaidBy {

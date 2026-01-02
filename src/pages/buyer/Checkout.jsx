@@ -201,6 +201,7 @@ function Checkout() {
             items: supplierGroup.items.map(item => ({
               productId: item.id,
               productName: item.name,
+              productImage: item.image || null,
               quantity: item.quantity,
               unitPrice: item.price,
               totalPrice: item.price * item.quantity
@@ -271,6 +272,7 @@ function Checkout() {
       items: cart.map(item => ({
         productId: item.id,
         productName: item.name,
+        productImage: item.image || null,
         quantity: item.quantity,
         unitPrice: item.price,
         totalPrice: item.price * item.quantity

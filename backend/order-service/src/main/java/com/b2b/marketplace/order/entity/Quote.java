@@ -1,7 +1,6 @@
 package com.b2b.marketplace.order.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,7 +13,6 @@ import java.util.List;
  */
 @Entity
 @Table(name = "quotes")
-@Data
 public class Quote {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -78,7 +76,7 @@ public class Quote {
     private String rejectionReason;
 
     @Column(name = "validity_days")
-    private Integer validityDays = 15; // Default 15 days
+    private Integer validityDays = 15;
 
     @Column(name = "valid_until")
     private LocalDate validUntil;
@@ -116,6 +114,106 @@ public class Quote {
     @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("createdAt DESC")
     private List<QuoteMessage> messages = new ArrayList<>();
+
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getQuoteNumber() { return quoteNumber; }
+    public void setQuoteNumber(String quoteNumber) { this.quoteNumber = quoteNumber; }
+
+    public Long getBuyerId() { return buyerId; }
+    public void setBuyerId(Long buyerId) { this.buyerId = buyerId; }
+
+    public String getBuyerName() { return buyerName; }
+    public void setBuyerName(String buyerName) { this.buyerName = buyerName; }
+
+    public String getBuyerEmail() { return buyerEmail; }
+    public void setBuyerEmail(String buyerEmail) { this.buyerEmail = buyerEmail; }
+
+    public String getBuyerPhone() { return buyerPhone; }
+    public void setBuyerPhone(String buyerPhone) { this.buyerPhone = buyerPhone; }
+
+    public String getBuyerCompany() { return buyerCompany; }
+    public void setBuyerCompany(String buyerCompany) { this.buyerCompany = buyerCompany; }
+
+    public Long getSupplierId() { return supplierId; }
+    public void setSupplierId(Long supplierId) { this.supplierId = supplierId; }
+
+    public String getSupplierName() { return supplierName; }
+    public void setSupplierName(String supplierName) { this.supplierName = supplierName; }
+
+    public QuoteStatus getStatus() { return status; }
+    public void setStatus(QuoteStatus status) { this.status = status; }
+
+    public BigDecimal getOriginalTotal() { return originalTotal; }
+    public void setOriginalTotal(BigDecimal originalTotal) { this.originalTotal = originalTotal; }
+
+    public BigDecimal getQuotedTotal() { return quotedTotal; }
+    public void setQuotedTotal(BigDecimal quotedTotal) { this.quotedTotal = quotedTotal; }
+
+    public BigDecimal getFinalTotal() { return finalTotal; }
+    public void setFinalTotal(BigDecimal finalTotal) { this.finalTotal = finalTotal; }
+
+    public BigDecimal getDiscountPercentage() { return discountPercentage; }
+    public void setDiscountPercentage(BigDecimal discountPercentage) { this.discountPercentage = discountPercentage; }
+
+    public BigDecimal getDiscountAmount() { return discountAmount; }
+    public void setDiscountAmount(BigDecimal discountAmount) { this.discountAmount = discountAmount; }
+
+    public String getCurrency() { return currency; }
+    public void setCurrency(String currency) { this.currency = currency; }
+
+    public String getShippingAddress() { return shippingAddress; }
+    public void setShippingAddress(String shippingAddress) { this.shippingAddress = shippingAddress; }
+
+    public String getBuyerRequirements() { return buyerRequirements; }
+    public void setBuyerRequirements(String buyerRequirements) { this.buyerRequirements = buyerRequirements; }
+
+    public String getSupplierNotes() { return supplierNotes; }
+    public void setSupplierNotes(String supplierNotes) { this.supplierNotes = supplierNotes; }
+
+    public String getRejectionReason() { return rejectionReason; }
+    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
+
+    public Integer getValidityDays() { return validityDays; }
+    public void setValidityDays(Integer validityDays) { this.validityDays = validityDays; }
+
+    public LocalDate getValidUntil() { return validUntil; }
+    public void setValidUntil(LocalDate validUntil) { this.validUntil = validUntil; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public LocalDateTime getRespondedAt() { return respondedAt; }
+    public void setRespondedAt(LocalDateTime respondedAt) { this.respondedAt = respondedAt; }
+
+    public LocalDateTime getApprovedAt() { return approvedAt; }
+    public void setApprovedAt(LocalDateTime approvedAt) { this.approvedAt = approvedAt; }
+
+    public LocalDateTime getConvertedToOrderAt() { return convertedToOrderAt; }
+    public void setConvertedToOrderAt(LocalDateTime convertedToOrderAt) { this.convertedToOrderAt = convertedToOrderAt; }
+
+    public Long getOrderId() { return orderId; }
+    public void setOrderId(Long orderId) { this.orderId = orderId; }
+
+    public String getOrderNumber() { return orderNumber; }
+    public void setOrderNumber(String orderNumber) { this.orderNumber = orderNumber; }
+
+    public Boolean getIsFromCart() { return isFromCart; }
+    public void setIsFromCart(Boolean isFromCart) { this.isFromCart = isFromCart; }
+
+    public Integer getNegotiationCount() { return negotiationCount; }
+    public void setNegotiationCount(Integer negotiationCount) { this.negotiationCount = negotiationCount; }
+
+    public List<QuoteItem> getItems() { return items; }
+    public void setItems(List<QuoteItem> items) { this.items = items; }
+
+    public List<QuoteMessage> getMessages() { return messages; }
+    public void setMessages(List<QuoteMessage> messages) { this.messages = messages; }
 
     @PrePersist
     protected void onCreate() {
@@ -173,14 +271,14 @@ public class Quote {
     }
 
     public enum QuoteStatus {
-        PENDING,           // Buyer submitted, waiting for supplier response
-        SUPPLIER_RESPONDED, // Supplier provided pricing
-        BUYER_REVIEWING,   // Buyer is reviewing the quote
-        NEGOTIATING,       // Counter-offer in progress
-        APPROVED,          // Supplier final approval - ready to convert
-        CONVERTED,         // Converted to order
-        REJECTED,          // Rejected by supplier
-        CANCELLED,         // Cancelled by buyer
-        EXPIRED            // Quote validity expired
+        PENDING,
+        SUPPLIER_RESPONDED,
+        BUYER_REVIEWING,
+        NEGOTIATING,
+        APPROVED,
+        CONVERTED,
+        REJECTED,
+        CANCELLED,
+        EXPIRED
     }
 }

@@ -1,9 +1,11 @@
 package com.b2b.marketplace.order.controller;
 
 import com.b2b.marketplace.order.dto.*;
+import com.b2b.marketplace.order.entity.Supplier;
+import com.b2b.marketplace.order.repository.SupplierRepository;
 import com.b2b.marketplace.order.service.DisputeService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,13 +28,28 @@ import java.util.Map;
  * - Common: Add messages, view details
  */
 @RestController
-@RequestMapping("/disputes")
-@RequiredArgsConstructor
-@Slf4j
-@CrossOrigin(origins = "*")
+@RequestMapping("/api/disputes")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"}, allowCredentials = "true")
 public class DisputeController {
     
+    private static final Logger log = LoggerFactory.getLogger(DisputeController.class);
+    
     private final DisputeService disputeService;
+    private final SupplierRepository supplierRepository;
+    
+    public DisputeController(DisputeService disputeService, SupplierRepository supplierRepository) {
+        this.disputeService = disputeService;
+        this.supplierRepository = supplierRepository;
+    }
+    
+    /**
+     * Helper method to get supplier ID from user ID
+     */
+    private Long getSupplierIdFromUserId(Long userId) {
+        return supplierRepository.findByUserId(userId)
+                .map(Supplier::getId)
+                .orElse(userId); // Fallback to userId if no supplier record found
+    }
     
     // ==================== BUYER ENDPOINTS ====================
     
@@ -69,13 +86,16 @@ public class DisputeController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             Long userId = Long.parseLong(auth.getName());
+            Long supplierId = getSupplierIdFromUserId(userId);
             
             DisputeResponse response = disputeService.getByTicketNumber(ticketNumber, false);
             
-            // Check authorization
-            boolean isAuthorized = response.getBuyerId().equals(userId) || 
-                                   response.getSupplierId().equals(userId);
-            if (!isAuthorized) {
+            // Check authorization - compare with both buyer ID and supplier ID
+            boolean isBuyer = response.getBuyerId().equals(userId);
+            boolean isSupplier = response.getSupplierId().equals(supplierId);
+            if (!isBuyer && !isSupplier) {
+                log.warn("User {} (supplier {}) not authorized for dispute {} (buyer: {}, supplier: {})", 
+                    userId, supplierId, ticketNumber, response.getBuyerId(), response.getSupplierId());
                 return ResponseEntity.status(403).body(Map.of(
                     "success", false,
                     "message", "Not authorized to view this dispute"
@@ -83,8 +103,7 @@ public class DisputeController {
             }
             
             // Include internal messages if supplier
-            boolean includeInternal = response.getSupplierId().equals(userId);
-            if (includeInternal) {
+            if (isSupplier) {
                 response = disputeService.getByTicketNumber(ticketNumber, true);
             }
             
@@ -192,7 +211,9 @@ public class DisputeController {
     public ResponseEntity<?> getSupplierDisputes(@RequestParam(required = false) String status) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            Long supplierId = Long.parseLong(auth.getName());
+            Long userId = Long.parseLong(auth.getName());
+            Long supplierId = getSupplierIdFromUserId(userId);
+            log.info("Fetching disputes for user {} -> supplier {}", userId, supplierId);
             
             List<DisputeResponse> disputes = disputeService.getSupplierDisputes(supplierId, status);
             return ResponseEntity.ok(Map.of(
@@ -215,7 +236,8 @@ public class DisputeController {
     public ResponseEntity<?> getSupplierStats() {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            Long supplierId = Long.parseLong(auth.getName());
+            Long userId = Long.parseLong(auth.getName());
+            Long supplierId = getSupplierIdFromUserId(userId);
             
             Map<String, Object> stats = disputeService.getSupplierStats(supplierId);
             return ResponseEntity.ok(Map.of(
@@ -240,7 +262,8 @@ public class DisputeController {
             @RequestBody(required = false) Map<String, String> request) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            Long supplierId = Long.parseLong(auth.getName());
+            Long userId = Long.parseLong(auth.getName());
+            Long supplierId = getSupplierIdFromUserId(userId);
             
             String message = request != null ? request.get("message") : null;
             DisputeResponse response = disputeService.acknowledgeDispute(ticketNumber, supplierId, message);
@@ -268,7 +291,8 @@ public class DisputeController {
             @RequestBody Map<String, Object> request) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            Long supplierId = Long.parseLong(auth.getName());
+            Long userId = Long.parseLong(auth.getName());
+            Long supplierId = getSupplierIdFromUserId(userId);
             
             String message = (String) request.get("message");
             String proposedResolution = (String) request.get("proposedResolution");

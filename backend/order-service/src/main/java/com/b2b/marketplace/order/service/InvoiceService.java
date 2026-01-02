@@ -4,8 +4,8 @@ import com.b2b.marketplace.order.dto.InvoiceDTO;
 import com.b2b.marketplace.order.entity.Order;
 import com.b2b.marketplace.order.entity.OrderItem;
 import com.b2b.marketplace.order.repository.OrderRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -19,11 +19,15 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class InvoiceService {
     
+    private static final Logger log = LoggerFactory.getLogger(InvoiceService.class);
+    
     private final OrderRepository orderRepository;
+    
+    public InvoiceService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
     
     // Simple invoice number counter (in production, use database sequence)
     private static final AtomicLong invoiceCounter = new AtomicLong(1000);

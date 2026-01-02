@@ -2,7 +2,6 @@ package com.b2b.marketplace.order.controller;
 
 import com.b2b.marketplace.order.dto.AnalyticsResponse;
 import com.b2b.marketplace.order.service.AnalyticsService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -10,10 +9,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/analytics")
-@RequiredArgsConstructor
 public class AnalyticsController {
 
     private final AnalyticsService analyticsService;
+    
+    public AnalyticsController(AnalyticsService analyticsService) {
+        this.analyticsService = analyticsService;
+    }
 
     @GetMapping("/supplier/stats")
     public ResponseEntity<?> getSupplierStats(@RequestParam(defaultValue = "month") String period) {

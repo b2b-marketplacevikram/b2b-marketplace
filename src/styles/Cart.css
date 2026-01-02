@@ -270,3 +270,247 @@
     margin: 0 auto;
   }
 }
+
+/* Multi-Supplier Quote Styles */
+.multi-supplier-note {
+  font-size: 0.85rem;
+  color: #856404;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.supplier-breakdown {
+  margin-top: 30px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.supplier-breakdown h2 {
+  margin-bottom: 20px;
+  font-size: 1.3rem;
+}
+
+.supplier-group {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  margin-bottom: 15px;
+  overflow: hidden;
+}
+
+.supplier-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.supplier-group-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.supplier-info .item-count {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.supplier-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.group-total {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--primary-color);
+}
+
+.btn-quote-supplier {
+  background: var(--secondary-color);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.btn-quote-supplier:hover {
+  background: #e65c00;
+}
+
+.supplier-items {
+  padding: 15px 20px;
+}
+
+.supplier-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.supplier-item:last-child {
+  border-bottom: none;
+}
+
+.supplier-item img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.supplier-item .item-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.supplier-item .item-qty {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.supplier-item .item-price {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* Supplier Selection Modal */
+.supplier-selection-modal {
+  background: white;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.supplier-selection-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.supplier-selection-modal .modal-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.supplier-selection-modal .close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.supplier-selection-modal .modal-body {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.supplier-selection-modal .modal-info {
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.supplier-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.supplier-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.supplier-option:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.supplier-details h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+}
+
+.supplier-details p {
+  margin: 0 0 10px 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.supplier-details .product-list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.supplier-details .product-list li {
+  margin-bottom: 4px;
+}
+
+.btn-select-supplier {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.btn-select-supplier:hover {
+  background: #1565c0;
+}
+
+.supplier-selection-modal .modal-footer {
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border-top: 1px solid var(--border-color);
+}
+
+.supplier-selection-modal .tip {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}

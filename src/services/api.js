@@ -482,19 +482,22 @@ export const orderAPI = {
     }
   },
 
-  updateStatus: async (orderId, statusData) => {
+  updateStatus: async (orderId, status) => {
     try {
       // First get the order to find its database ID
       const orderResponse = await orderAPIInstance.get(`/orders/number/${orderId}`);
       const dbId = orderResponse.data.id;
       
+      // Prepare the request body - handle both string and object
+      const requestBody = typeof status === 'string' ? { status } : status;
+      
       // Update status using the database ID
-      const response = await orderAPIInstance.put(`/orders/${dbId}/status`, statusData);
+      const response = await orderAPIInstance.put(`/orders/${dbId}/status`, requestBody);
       return { success: true, data: response.data };
     } catch (error) {
       return {
         success: false,
-        message: error.response?.data?.message || 'Failed to update order status',
+        message: error.response?.data?.message || error.response?.data || 'Failed to update order status',
       };
     }
   },
@@ -527,9 +530,12 @@ export const orderAPI = {
     }
   },
 
-  confirmPayment: async (orderNumber) => {
+  confirmPayment: async (orderNumber, approved = true) => {
     try {
-      const response = await orderAPIInstance.put(`/orders/number/${orderNumber}/confirm-payment`);
+      const response = await orderAPIInstance.post(`/orders/${orderNumber}/verify-payment`, {
+        approved: approved,
+        notes: 'Payment confirmed by supplier'
+      });
       return { success: true, data: response.data };
     } catch (error) {
       return {
@@ -1104,6 +1110,129 @@ export const paymentAPI = {
         success: false,
         message: error.response?.data?.message || 'Refund failed',
       };
+    }
+  },
+};
+
+// ==================== Refund APIs ====================
+export const refundAPI = {
+  // Supplier initiates refund
+  initiateRefund: async (data) => {
+    try {
+      const response = await orderAPIInstance.post('/refunds/initiate', data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to initiate refund' };
+    }
+  },
+
+  // Buyer confirms refund
+  confirmRefund: async (refundId, data = {}) => {
+    try {
+      const response = await orderAPIInstance.post(`/refunds/${refundId}/confirm`, data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to confirm refund' };
+    }
+  },
+
+  // Buyer rejects refund method
+  rejectRefund: async (refundId, reason) => {
+    try {
+      const response = await orderAPIInstance.post(`/refunds/${refundId}/reject`, { reason });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to reject refund' };
+    }
+  },
+
+  // Supplier marks refund as completed
+  completeRefund: async (refundId) => {
+    try {
+      const response = await orderAPIInstance.post(`/refunds/${refundId}/complete`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to complete refund' };
+    }
+  },
+
+  // Get refunds for buyer
+  getBuyerRefunds: async (buyerId) => {
+    try {
+      const response = await orderAPIInstance.get(`/refunds/buyer/${buyerId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, data: [] };
+    }
+  },
+
+  // Get pending refunds for buyer
+  getPendingRefunds: async (buyerId) => {
+    try {
+      const response = await orderAPIInstance.get(`/refunds/buyer/${buyerId}/pending`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, data: [] };
+    }
+  },
+
+  // Get refunds for supplier
+  getSupplierRefunds: async (supplierId) => {
+    try {
+      const response = await orderAPIInstance.get(`/refunds/supplier/${supplierId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, data: [] };
+    }
+  },
+
+  // Get refund by ID
+  getRefund: async (refundId) => {
+    try {
+      const response = await orderAPIInstance.get(`/refunds/${refundId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, data: null };
+    }
+  },
+
+  // Get buyer bank details
+  getBuyerBankDetails: async (buyerId) => {
+    try {
+      const response = await orderAPIInstance.get(`/refunds/bank-details/buyer/${buyerId}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, data: [] };
+    }
+  },
+
+  // Add buyer bank details
+  addBuyerBankDetails: async (buyerId, data) => {
+    try {
+      const response = await orderAPIInstance.post(`/refunds/bank-details/buyer/${buyerId}`, data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to add bank details' };
+    }
+  },
+
+  // Update buyer bank details
+  updateBuyerBankDetails: async (id, data) => {
+    try {
+      const response = await orderAPIInstance.put(`/refunds/bank-details/${id}`, data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to update bank details' };
+    }
+  },
+
+  // Delete buyer bank details
+  deleteBuyerBankDetails: async (id) => {
+    try {
+      await orderAPIInstance.delete(`/refunds/bank-details/${id}`);
+      return { success: true };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to delete bank details' };
     }
   },
 };
