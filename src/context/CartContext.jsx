@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useAuth } from './AuthContext'
+import { useToast } from './ToastContext'
 import axios from 'axios'
 
 const CartContext = createContext()
@@ -13,6 +14,7 @@ export function useCart() {
 export function CartProvider({ children }) {
   console.log('CartProvider rendering...')
   const { user } = useAuth()
+  const toast = useToast()
   console.log('CartProvider user:', user)
   const [cart, setCart] = useState([])
   const [loading, setLoading] = useState(false)
@@ -62,7 +64,7 @@ export function CartProvider({ children }) {
   const addToCart = async (product) => {
     if (!user?.id) {
       console.warn('User not logged in, cannot add to cart')
-      alert('Please login to add items to cart')
+      toast?.warning('Please login to add items to cart', '🔐')
       return { success: false, message: 'Please login first' }
     }
 
@@ -85,8 +87,8 @@ export function CartProvider({ children }) {
     } catch (error) {
       console.error('Error adding to cart:', error)
       console.error('Error response:', error.response?.data)
-      const errorMsg = error.response?.data?.message || 'Failed to add to cart'
-      alert(errorMsg)
+      const errorMsg = error.response?.data?.message || 'Failed to add to cart. Please try again.'
+      toast?.error(errorMsg, '❌')
       return { success: false, message: errorMsg }
     } finally {
       setLoading(false)

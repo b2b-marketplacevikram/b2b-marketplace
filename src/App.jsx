@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { ToastProvider } from './context/ToastContext'
 import { CartProvider } from './context/CartContext'
 import { NotificationProvider } from './context/NotificationContext'
 import { MessagingProvider } from './context/MessagingContext'
@@ -72,32 +73,33 @@ function App() {
   
   return (
     <AuthProvider>
-      <CartProvider>
-        <NotificationProvider>
-          <MessagingProvider>
-            <Router>
-              <div className="app">
-                <Header />
-                <ToastNotification />
-                <main className="main-content">
-                  <Routes>
-                    {/* Buyer Routes */}
-                    <Route path="/" element={<Home />} />
-                    <Route path="/search" element={<ProductSearch />} />
-                    <Route path="/product/:id" element={<ProductDetails />} />
-                    <Route path="/supplier/:id" element={<SupplierProfile />} />
-                    <Route path="/cart" element={<Cart />} />
-                    <Route path="/checkout" element={<Checkout />} />
-                    <Route path="/order-success" element={<OrderSuccess />} />
-                    <Route path="/orders/:orderNumber/payment-instructions" element={<PaymentInstructions />} />
-                    <Route path="/orders/multi-payment-instructions" element={<MultiSupplierPaymentInstructions />} />
-                    <Route path="/orders" element={<OrderHistory />} />
-                    <Route path="/orders/:orderId" element={<OrderTracking />} />
-                    <Route path="/order-tracking/:orderId" element={<OrderTracking />} />
-                    <Route path="/messages" element={<Messages />} />
-                    <Route path="/account" element={<Account />} />
+      <ToastProvider>
+        <CartProvider>
+          <NotificationProvider>
+            <MessagingProvider>
+              <Router>
+                <div className="app">
+                  <Header />
+                  <ToastNotification />
+                  <main className="main-content">
+                    <Routes>
+                      {/* Buyer Routes */}
+                      <Route path="/" element={<Home />} />
+                      <Route path="/search" element={<ProductSearch />} />
+                      <Route path="/product/:id" element={<ProductDetails />} />
+                      <Route path="/supplier/:id" element={<SupplierProfile />} />
+                      <Route path="/cart" element={<Cart />} />
+                      <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/order-success" element={<OrderSuccess />} />
+                      <Route path="/orders/:orderNumber/payment-instructions" element={<PaymentInstructions />} />
+                      <Route path="/orders/multi-payment-instructions" element={<MultiSupplierPaymentInstructions />} />
+                      <Route path="/orders" element={<OrderHistory />} />
+                      <Route path="/orders/:orderId" element={<OrderTracking />} />
+                      <Route path="/order-tracking/:orderId" element={<OrderTracking />} />
+                      <Route path="/messages" element={<Messages />} />
+                      <Route path="/account" element={<Account />} />
                     
-                    {/* Buyer Bank Details & Refunds */}
+                      {/* Buyer Bank Details & Refunds */}
                     <Route path="/buyer/bank-details" element={<BuyerBankDetails />} />
                     <Route path="/buyer/refunds" element={<RefundRequests />} />
                     
@@ -145,15 +147,16 @@ function App() {
                     <Route path="/grievance" element={<GrievanceOfficer />} />
                     <Route path="/refund-policy" element={<RefundPolicy />} />
                   </Routes>
-            </main>
-            <Footer />
-            <CookieConsent />
-          </div>
-        </Router>
-      </MessagingProvider>
-    </NotificationProvider>
-  </CartProvider>
-</AuthProvider>
+                </main>
+                <Footer />
+                <CookieConsent />
+              </div>
+            </Router>
+          </MessagingProvider>
+        </NotificationProvider>
+      </CartProvider>
+    </ToastProvider>
+  </AuthProvider>
   )
 }
 
