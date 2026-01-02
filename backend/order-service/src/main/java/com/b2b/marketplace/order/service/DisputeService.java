@@ -5,6 +5,8 @@ import com.b2b.marketplace.order.entity.*;
 import com.b2b.marketplace.order.entity.Dispute.*;
 import com.b2b.marketplace.order.entity.DisputeMessage.*;
 import com.b2b.marketplace.order.repository.*;
+import com.b2b.marketplace.order.entity.RefundTransaction;
+import com.b2b.marketplace.order.entity.BuyerBankDetails;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -38,11 +40,17 @@ public class DisputeService {
     private final DisputeRepository disputeRepository;
     private final OrderRepository orderRepository;
     private final ObjectMapper objectMapper;
+    private final BuyerBankDetailsRepository buyerBankDetailsRepository;
+    private final RefundTransactionRepository refundTransactionRepository;
     
-    public DisputeService(DisputeRepository disputeRepository, OrderRepository orderRepository, ObjectMapper objectMapper) {
+    public DisputeService(DisputeRepository disputeRepository, OrderRepository orderRepository, 
+            ObjectMapper objectMapper, BuyerBankDetailsRepository buyerBankDetailsRepository,
+            RefundTransactionRepository refundTransactionRepository) {
         this.disputeRepository = disputeRepository;
         this.orderRepository = orderRepository;
         this.objectMapper = objectMapper;
+        this.buyerBankDetailsRepository = buyerBankDetailsRepository;
+        this.refundTransactionRepository = refundTransactionRepository;
     }
     
     /**
@@ -490,8 +498,38 @@ public class DisputeService {
             response.setRefundStatus(dispute.getRefundStatus().name());
             response.setRefundStatusLabel(dispute.getRefundStatus().getLabel());
         }
-        response.setRefundProcessedAt(dispute.getRefundProcessedAt());
-        
+                response.setRefundProcessedAt(dispute.getRefundProcessedAt());
+
+        // Populate buyer bank details
+        BuyerBankDetails bankDetails = buyerBankDetailsRepository.findFirstByBuyerId(dispute.getBuyerId())
+                .orElse(null);
+        if (bankDetails != null) {
+            BuyerBankDetailsDTO bankDTO = new BuyerBankDetailsDTO();
+            bankDTO.setId(bankDetails.getId());
+            bankDTO.setBankName(bankDetails.getBankName());
+            bankDTO.setAccountHolderName(bankDetails.getAccountHolderName());
+            bankDTO.setAccountNumber(bankDetails.getAccountNumber());
+            bankDTO.setIfscCode(bankDetails.getIfscCode());
+            bankDTO.setUpiId(bankDetails.getUpiId());
+            response.setBuyerBankDetails(bankDTO);
+        }
+
+        // Populate refund transaction
+        RefundTransaction refundTx = refundTransactionRepository.findByTicketNumber(dispute.getTicketNumber())
+                .orElse(null);
+        if (refundTx != null) {
+            RefundTransactionDTO txDTO = new RefundTransactionDTO();
+            txDTO.setTransactionId(refundTx.getTransactionId());
+            txDTO.setBankName(refundTx.getBankName());
+            txDTO.setTransactionDate(refundTx.getTransactionDate());
+            txDTO.setProofUrl(refundTx.getProofUrl());
+            txDTO.setBuyerConfirmed(refundTx.getBuyerConfirmed());
+            txDTO.setConfirmedAt(refundTx.getConfirmedAt());
+            response.setRefundTransaction(txDTO);
+            response.setRefundConfirmed(refundTx.getBuyerConfirmed());
+            response.setRefundConfirmedAt(refundTx.getConfirmedAt());
+        }
+
         // Resolution
         if (dispute.getResolutionType() != null) {
             response.setResolutionType(dispute.getResolutionType().name());
@@ -568,4 +606,202 @@ public class DisputeService {
         
         return response;
     }
+
+    // ==================== REFUND FLOW METHODS ====================
+
+    /**
+     * Save buyer bank details for refund
+     */
+    @Transactional
+    public DisputeResponse saveBuyerBankDetails(String ticketNumber, Long buyerId, BuyerBankDetailsDTO bankDetailsDTO) {
+        Dispute dispute = disputeRepository.findByTicketNumber(ticketNumber)
+                .orElseThrow(() -> new RuntimeException("Dispute not found: " + ticketNumber));
+
+        if (!dispute.getBuyerId().equals(buyerId)) {
+            throw new RuntimeException("Not authorized to save bank details for this dispute");
+        }
+
+        // Save or update bank details
+        BuyerBankDetails bankDetails = buyerBankDetailsRepository.findFirstByBuyerId(buyerId)
+                .orElse(new BuyerBankDetails());
+        
+        bankDetails.setBuyerId(buyerId);
+        bankDetails.setBankName(bankDetailsDTO.getBankName());
+        bankDetails.setAccountHolderName(bankDetailsDTO.getAccountHolderName());
+        bankDetails.setAccountNumber(bankDetailsDTO.getAccountNumber());
+        bankDetails.setIfscCode(bankDetailsDTO.getIfscCode());
+        bankDetails.setUpiId(bankDetailsDTO.getUpiId());
+        bankDetails.setSwiftCode(bankDetailsDTO.getSwiftCode());
+        bankDetails.setBranchName(bankDetailsDTO.getBranchName());
+        bankDetails.setIsPrimary(true);
+
+        buyerBankDetailsRepository.save(bankDetails);
+        log.info("Bank details saved for buyer {} on dispute {}", buyerId, ticketNumber);
+
+        // Add system message
+        DisputeMessage msg = new DisputeMessage();
+        msg.setSenderType(SenderType.SYSTEM);
+        msg.setSenderName("System");
+        msg.setMessageType(MessageType.SYSTEM);
+        msg.setMessage("Buyer has submitted bank details for refund processing.");
+        dispute.addMessage(msg);
+        disputeRepository.save(dispute);
+
+        return mapToResponse(dispute, false);
+    }
+
+    /**
+     * Get buyer bank details for a dispute (Supplier view)
+     */
+    public BuyerBankDetailsDTO getBuyerBankDetailsForDispute(String ticketNumber, Long supplierId) {
+        Dispute dispute = disputeRepository.findByTicketNumber(ticketNumber)
+                .orElseThrow(() -> new RuntimeException("Dispute not found: " + ticketNumber));
+
+        if (!dispute.getSupplierId().equals(supplierId)) {
+            throw new RuntimeException("Not authorized to view bank details for this dispute");
+        }
+
+        BuyerBankDetails bankDetails = buyerBankDetailsRepository.findFirstByBuyerId(dispute.getBuyerId())
+                .orElse(null);
+        
+        if (bankDetails == null) {
+            return null;
+        }
+
+        BuyerBankDetailsDTO dto = new BuyerBankDetailsDTO();
+        dto.setId(bankDetails.getId());
+        dto.setBankName(bankDetails.getBankName());
+        dto.setAccountHolderName(bankDetails.getAccountHolderName());
+        dto.setAccountNumber(bankDetails.getAccountNumber());
+        dto.setIfscCode(bankDetails.getIfscCode());
+        dto.setUpiId(bankDetails.getUpiId());
+        dto.setSwiftCode(bankDetails.getSwiftCode());
+        dto.setBranchName(bankDetails.getBranchName());
+        dto.setIsPrimary(bankDetails.getIsPrimary());
+        dto.setIsVerified(bankDetails.getIsVerified());
+        return dto;
+    }
+
+    /**
+     * Submit refund transaction details (Supplier action)
+     */
+    @Transactional
+    public DisputeResponse submitRefundTransaction(String ticketNumber, Long supplierId, RefundTransactionDTO transactionDTO) {
+        Dispute dispute = disputeRepository.findByTicketNumber(ticketNumber)
+                .orElseThrow(() -> new RuntimeException("Dispute not found: " + ticketNumber));
+
+        if (!dispute.getSupplierId().equals(supplierId)) {
+            throw new RuntimeException("Not authorized to submit refund for this dispute");
+        }
+
+        // Create refund transaction record
+        RefundTransaction transaction = refundTransactionRepository.findByTicketNumber(ticketNumber)
+                .orElse(new RefundTransaction());
+        
+        transaction.setDisputeId(dispute.getId());
+        transaction.setTicketNumber(ticketNumber);
+        transaction.setSupplierId(supplierId);
+        transaction.setBuyerId(dispute.getBuyerId());
+        transaction.setTransactionId(transactionDTO.getTransactionId());
+        transaction.setBankName(transactionDTO.getBankName());
+        transaction.setTransactionDate(transactionDTO.getTransactionDate() != null ? 
+                transactionDTO.getTransactionDate() : LocalDateTime.now());
+        transaction.setProofUrl(transactionDTO.getProofUrl());
+        transaction.setNotes(transactionDTO.getNotes());
+
+        refundTransactionRepository.save(transaction);
+        log.info("Refund transaction submitted for dispute {}: {}", ticketNumber, transactionDTO.getTransactionId());
+
+        // Update dispute status
+        dispute.setRefundStatus(RefundStatus.PROCESSING);
+        dispute.setStatus(DisputeStatus.AWAITING_BUYER);
+
+        // Add message
+        DisputeMessage msg = new DisputeMessage();
+        msg.setSenderId(supplierId);
+        msg.setSenderName(dispute.getSupplierName());
+        msg.setSenderType(SenderType.SUPPLIER);
+        msg.setMessageType(MessageType.STATUS_UPDATE);
+        msg.setMessage("Refund processed. Transaction ID: " + transactionDTO.getTransactionId() + 
+                ". Please confirm receipt of the refund.");
+        dispute.addMessage(msg);
+
+        disputeRepository.save(dispute);
+        return mapToResponse(dispute, true);
+    }
+
+    /**
+     * Confirm refund received (Buyer action)
+     */
+    @Transactional
+    public DisputeResponse confirmRefundReceived(String ticketNumber, Long buyerId, String notes) {
+        Dispute dispute = disputeRepository.findByTicketNumber(ticketNumber)
+                .orElseThrow(() -> new RuntimeException("Dispute not found: " + ticketNumber));
+
+        if (!dispute.getBuyerId().equals(buyerId)) {
+            throw new RuntimeException("Not authorized to confirm refund for this dispute");
+        }
+
+        // Update refund transaction
+        RefundTransaction transaction = refundTransactionRepository.findByTicketNumber(ticketNumber)
+                .orElseThrow(() -> new RuntimeException("No refund transaction found for this dispute"));
+
+        transaction.setBuyerConfirmed(true);
+        transaction.setConfirmedAt(LocalDateTime.now());
+        transaction.setConfirmationNotes(notes);
+        refundTransactionRepository.save(transaction);
+
+        // Update dispute
+        dispute.setRefundStatus(RefundStatus.COMPLETED);
+        dispute.setRefundProcessedAt(LocalDateTime.now());
+        dispute.setStatus(DisputeStatus.RESOLVED);
+        dispute.setResolvedAt(LocalDateTime.now());
+
+        // Add confirmation message
+        DisputeMessage msg = new DisputeMessage();
+        msg.setSenderId(buyerId);
+        msg.setSenderName(dispute.getBuyerName());
+        msg.setSenderType(SenderType.BUYER);
+        msg.setMessageType(MessageType.RESOLUTION);
+        msg.setMessage("Buyer confirmed receipt of refund." + (notes != null ? " Notes: " + notes : ""));
+        dispute.addMessage(msg);
+
+        // Add system message
+        DisputeMessage sysMsg = new DisputeMessage();
+        sysMsg.setSenderType(SenderType.SYSTEM);
+        sysMsg.setSenderName("System");
+        sysMsg.setMessageType(MessageType.RESOLUTION);
+        sysMsg.setMessage("Refund confirmed by buyer. Dispute resolved successfully.");
+        dispute.addMessage(sysMsg);
+
+        disputeRepository.save(dispute);
+        log.info("Refund confirmed for dispute {}", ticketNumber);
+
+        return mapToResponse(dispute, false);
+    }
+
+    /**
+     * Get refund transaction for a dispute
+     */
+    public RefundTransactionDTO getRefundTransaction(String ticketNumber) {
+        RefundTransaction transaction = refundTransactionRepository.findByTicketNumber(ticketNumber)
+                .orElse(null);
+        
+        if (transaction == null) {
+            return null;
+        }
+
+        RefundTransactionDTO dto = new RefundTransactionDTO();
+        dto.setTransactionId(transaction.getTransactionId());
+        dto.setBankName(transaction.getBankName());
+        dto.setTransactionDate(transaction.getTransactionDate());
+        dto.setProofUrl(transaction.getProofUrl());
+        dto.setNotes(transaction.getNotes());
+        dto.setBuyerConfirmed(transaction.getBuyerConfirmed());
+        dto.setConfirmedAt(transaction.getConfirmedAt());
+        dto.setConfirmationNotes(transaction.getConfirmationNotes());
+        dto.setCreatedAt(transaction.getCreatedAt());
+        return dto;
+    }
 }
+

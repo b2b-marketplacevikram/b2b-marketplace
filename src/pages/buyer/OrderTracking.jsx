@@ -319,9 +319,12 @@ function OrderTracking() {
             <button className="btn-secondary" onClick={handleContactSupport}>
               Contact Support
             </button>
-            <button className="btn-dispute" onClick={handleRaiseDispute}>
-              ⚠️ Raise Dispute
-            </button>
+            {/* Only buyers can raise disputes against suppliers */}
+            {user?.userType === 'BUYER' && (
+              <button className="btn-dispute" onClick={handleRaiseDispute}>
+                 Raise Dispute
+              </button>
+            )}
           </div>
         </div>
 

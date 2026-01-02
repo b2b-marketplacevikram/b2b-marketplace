@@ -16,6 +16,22 @@ function Checkout() {
   const [processing, setProcessing] = useState(false)
   const [supplierBankDetails, setSupplierBankDetails] = useState(null)
   const [allSupplierBankDetails, setAllSupplierBankDetails] = useState({}) // For multi-supplier
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!user) {
+      toast.error('Please login to proceed with checkout', '')
+      navigate('/login', { state: { from: '/checkout' } })
+    }
+  }, [user, navigate])
+
+  // Redirect to cart if cart is empty  
+  useEffect(() => {
+    if (user && cart.length === 0) {
+      toast.info('Your cart is empty. Add items before checkout.', '')
+      navigate('/products')
+    }
+  }, [user, cart.length, navigate])
   const [formData, setFormData] = useState({
     // Shipping Information
     companyName: '',
@@ -376,18 +392,18 @@ function Checkout() {
         <h1>Checkout</h1>
 
         {/* Progress Steps */}
-        <div className="checkout-steps">
-          <div className={`step ${step >= 1 ? 'active' : ''}`}>
-            <div className="step-number">1</div>
-            <span>Shipping</span>
+        <div className="checkout-steps" style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '80px', marginBottom: '40px'}}>
+          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', opacity: step >= 1 ? 1 : 0.5}}>
+            <div style={{width: '40px', height: '40px', borderRadius: '50%', backgroundColor: step >= 1 ? '#ff6b35' : '#e0e0e0', color: step >= 1 ? 'white' : '#666', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '16px', border: '3px solid #fff', boxShadow: '0 2px 4px rgba(0,0,0,0.1)'}}>1</div>
+            <span style={{fontSize: '14px', fontWeight: 500, whiteSpace: 'nowrap', color: '#333'}}>Shipping</span>
           </div>
-          <div className={`step ${step >= 2 ? 'active' : ''}`}>
-            <div className="step-number">2</div>
-            <span>Payment</span>
+          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', opacity: step >= 2 ? 1 : 0.5}}>
+            <div style={{width: '40px', height: '40px', borderRadius: '50%', backgroundColor: step >= 2 ? '#ff6b35' : '#e0e0e0', color: step >= 2 ? 'white' : '#666', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '16px', border: '3px solid #fff', boxShadow: '0 2px 4px rgba(0,0,0,0.1)'}}>2</div>
+            <span style={{fontSize: '14px', fontWeight: 500, whiteSpace: 'nowrap', color: '#333'}}>Payment</span>
           </div>
-          <div className={`step ${step >= 3 ? 'active' : ''}`}>
-            <div className="step-number">3</div>
-            <span>Review</span>
+          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', opacity: step >= 3 ? 1 : 0.5}}>
+            <div style={{width: '40px', height: '40px', borderRadius: '50%', backgroundColor: step >= 3 ? '#ff6b35' : '#e0e0e0', color: step >= 3 ? 'white' : '#666', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '16px', border: '3px solid #fff', boxShadow: '0 2px 4px rgba(0,0,0,0.1)'}}>3</div>
+            <span style={{fontSize: '14px', fontWeight: 500, whiteSpace: 'nowrap', color: '#333'}}>Review</span>
           </div>
         </div>
 

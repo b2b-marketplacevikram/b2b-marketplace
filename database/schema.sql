@@ -743,3 +743,83 @@ CREATE TABLE refund_requests (
     INDEX idx_supplier (supplier_id),
     INDEX idx_status (status)
 );
+
+-- ==================== Refund Transactions Table ====================
+
+-- Refund Transaction Table (Supplier submits refund proof, Buyer confirms receipt)
+CREATE TABLE refund_transactions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    dispute_id BIGINT NOT NULL,
+    ticket_number VARCHAR(50) NOT NULL,
+    supplier_id BIGINT NOT NULL,
+    buyer_id BIGINT NOT NULL,
+    
+    -- Transaction Details from Supplier
+    transaction_id VARCHAR(100) NOT NULL COMMENT 'Bank transaction/UTR number',
+    bank_name VARCHAR(100) COMMENT 'Bank from which refund was sent',
+    transaction_date DATETIME COMMENT 'Date when refund was processed',
+    proof_url VARCHAR(500) COMMENT 'URL to transaction proof/screenshot',
+    notes TEXT COMMENT 'Additional notes from supplier',
+    
+    -- Buyer Confirmation
+    buyer_confirmed BOOLEAN DEFAULT FALSE COMMENT 'Buyer confirmed receipt of refund',
+    confirmed_at DATETIME COMMENT 'When buyer confirmed',
+    confirmation_notes TEXT COMMENT 'Notes from buyer during confirmation',
+    
+    -- Timestamps
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Foreign Keys
+    FOREIGN KEY (dispute_id) REFERENCES disputes(id) ON DELETE CASCADE,
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (buyer_id) REFERENCES buyers(id) ON DELETE RESTRICT,
+    
+    -- Indexes
+    INDEX idx_ticket_number (ticket_number),
+    INDEX idx_dispute_id (dispute_id),
+    INDEX idx_supplier_id (supplier_id),
+    INDEX idx_buyer_id (buyer_id),
+    
+    UNIQUE KEY uk_ticket_number (ticket_number)
+);
+
+-- ==================== Refund Transactions Table ====================
+
+-- Refund Transaction Table (Supplier submits refund proof, Buyer confirms receipt)
+CREATE TABLE refund_transactions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    dispute_id BIGINT NOT NULL,
+    ticket_number VARCHAR(50) NOT NULL,
+    supplier_id BIGINT NOT NULL,
+    buyer_id BIGINT NOT NULL,
+    
+    -- Transaction Details from Supplier
+    transaction_id VARCHAR(100) NOT NULL COMMENT 'Bank transaction/UTR number',
+    bank_name VARCHAR(100) COMMENT 'Bank from which refund was sent',
+    transaction_date DATETIME COMMENT 'Date when refund was processed',
+    proof_url VARCHAR(500) COMMENT 'URL to transaction proof/screenshot',
+    notes TEXT COMMENT 'Additional notes from supplier',
+    
+    -- Buyer Confirmation
+    buyer_confirmed BOOLEAN DEFAULT FALSE COMMENT 'Buyer confirmed receipt of refund',
+    confirmed_at DATETIME COMMENT 'When buyer confirmed',
+    confirmation_notes TEXT COMMENT 'Notes from buyer during confirmation',
+    
+    -- Timestamps
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Foreign Keys
+    FOREIGN KEY (dispute_id) REFERENCES disputes(id) ON DELETE CASCADE,
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (buyer_id) REFERENCES buyers(id) ON DELETE RESTRICT,
+    
+    -- Indexes
+    INDEX idx_ticket_number (ticket_number),
+    INDEX idx_dispute_id (dispute_id),
+    INDEX idx_supplier_id (supplier_id),
+    INDEX idx_buyer_id (buyer_id),
+    
+    UNIQUE KEY uk_ticket_number (ticket_number)
+);

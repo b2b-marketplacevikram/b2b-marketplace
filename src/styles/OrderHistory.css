@@ -2,6 +2,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  min-height: 60vh;
 }
 
 .order-history-header {

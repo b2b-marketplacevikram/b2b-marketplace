@@ -149,6 +149,22 @@ function OrderHistory() {
     return matchesStatus && matchesSearch
   })
 
+  // Redirect if not logged in
+  if (!user) {
+    return (
+      <div className="order-history-container" style={{minHeight: '60vh'}}>
+        <div className="no-orders">
+          <div className="no-orders-icon">??</div>
+          <h3>Please Login</h3>
+          <p>You need to be logged in to view your orders</p>
+          <Link to="/login" className="btn-primary">
+            Login Now
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="order-history-container">

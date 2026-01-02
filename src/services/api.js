@@ -931,9 +931,9 @@ export const disputeAPI = {
   },
 
   // Accept resolution (Buyer)
-  acceptResolution: async (ticketNumber, rating = null, feedback = null) => {
+  acceptResolution: async (ticketNumber, rating = null, feedback = null, bankDetails = null) => {
     try {
-      const response = await orderAPIInstance.post(`/disputes/${ticketNumber}/accept-resolution`, { rating, feedback });
+      const response = await orderAPIInstance.post(`/disputes/${ticketNumber}/accept-resolution`, { rating, feedback, bankDetails });
       return { success: true, data: response.data };
     } catch (error) {
       return {
@@ -952,6 +952,45 @@ export const disputeAPI = {
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to send message',
+      };
+    }
+  },
+
+
+  // Save buyer bank details for refund
+  saveBankDetails: async (ticketNumber, bankDetails) => {
+    try {
+      const response = await orderAPIInstance.post(`/disputes/${ticketNumber}/bank-details`, bankDetails);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to save bank details',
+      };
+    }
+  },
+  // Submit refund transaction (Supplier)
+  submitRefundTransaction: async (ticketNumber, transactionData) => {
+    try {
+      const response = await orderAPIInstance.post(`/disputes/${ticketNumber}/refund-transaction`, transactionData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to submit refund transaction',
+      };
+    }
+  },
+
+  // Confirm refund received (Buyer)
+  confirmRefundReceived: async (ticketNumber) => {
+    try {
+      const response = await orderAPIInstance.post(`/disputes/${ticketNumber}/confirm-refund`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to confirm refund',
       };
     }
   },
@@ -1684,3 +1723,8 @@ export default {
   admin: adminAPI,
   whatsapp: whatsappAPI,
 };
+
+
+
+
+

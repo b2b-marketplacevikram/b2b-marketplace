@@ -401,4 +401,121 @@ public class DisputeController {
             ));
         }
     }
+
+    // ==================== REFUND FLOW ENDPOINTS ====================
+
+    /**
+     * Save buyer bank details for refund (Buyer action)
+     * POST /api/disputes/{ticketNumber}/bank-details
+     */
+    @PostMapping("/{ticketNumber}/bank-details")
+    public ResponseEntity<?> saveBuyerBankDetails(
+            @PathVariable String ticketNumber,
+            @RequestBody BuyerBankDetailsDTO bankDetails) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Long buyerId = Long.parseLong(auth.getName());
+
+            DisputeResponse response = disputeService.saveBuyerBankDetails(ticketNumber, buyerId, bankDetails);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Bank details saved successfully",
+                "data", response
+            ));
+        } catch (Exception e) {
+            log.error("Failed to save bank details", e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Get buyer bank details for a dispute (Supplier action - to know where to send refund)
+     * GET /api/disputes/{ticketNumber}/bank-details
+     */
+    @GetMapping("/{ticketNumber}/bank-details")
+    public ResponseEntity<?> getBuyerBankDetails(@PathVariable String ticketNumber) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Long userId = Long.parseLong(auth.getName());
+            Long supplierId = getSupplierIdFromUserId(userId);
+
+            BuyerBankDetailsDTO bankDetails = disputeService.getBuyerBankDetailsForDispute(ticketNumber, supplierId);
+            if (bankDetails == null) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "data", (Object) null,
+                    "message", "Buyer has not submitted bank details yet"
+                ));
+            }
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", bankDetails
+            ));
+        } catch (Exception e) {
+            log.error("Failed to get bank details", e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Submit refund transaction details (Supplier action)
+     * POST /api/disputes/{ticketNumber}/refund-transaction
+     */
+    @PostMapping("/{ticketNumber}/refund-transaction")
+    public ResponseEntity<?> submitRefundTransaction(
+            @PathVariable String ticketNumber,
+            @RequestBody RefundTransactionDTO transactionData) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Long userId = Long.parseLong(auth.getName());
+            Long supplierId = getSupplierIdFromUserId(userId);
+
+            DisputeResponse response = disputeService.submitRefundTransaction(ticketNumber, supplierId, transactionData);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Refund transaction details submitted. Awaiting buyer confirmation.",
+                "data", response
+            ));
+        } catch (Exception e) {
+            log.error("Failed to submit refund transaction", e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Confirm refund received (Buyer action)
+     * POST /api/disputes/{ticketNumber}/confirm-refund
+     */
+    @PostMapping("/{ticketNumber}/confirm-refund")
+    public ResponseEntity<?> confirmRefundReceived(
+            @PathVariable String ticketNumber,
+            @RequestBody(required = false) Map<String, String> request) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Long buyerId = Long.parseLong(auth.getName());
+
+            String notes = request != null ? request.get("notes") : null;
+            DisputeResponse response = disputeService.confirmRefundReceived(ticketNumber, buyerId, notes);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Refund receipt confirmed. Dispute resolved.",
+                "data", response
+            ));
+        } catch (Exception e) {
+            log.error("Failed to confirm refund", e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
+        }
+    }
 }

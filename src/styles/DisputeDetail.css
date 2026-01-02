@@ -988,3 +988,962 @@
 .escalation-info strong {
   color: #78350f;
 }
+
+/* New Supplier Action Buttons */
+.btn-process-refund {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.btn-process-refund:hover {
+  background: linear-gradient(135deg, #45a049, #3d8b40);
+  transform: translateY(-1px);
+}
+
+.btn-resolve {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.btn-resolve:hover {
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+  transform: translateY(-1px);
+}
+
+/* Bank Details Section in Accept Resolution Modal */
+.bank-details-section {
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  border-radius: 12px;
+  border: 1px solid #90caf9;
+}
+
+.bank-details-section h3 {
+  margin: 0 0 8px 0;
+  color: #1565c0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.bank-details-section .info-text {
+  margin: 0 0 16px 0;
+  color: #1976d2;
+  font-size: 13px;
+}
+
+.bank-details-section .form-group {
+  margin-bottom: 14px;
+}
+
+.bank-details-section .form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #1565c0;
+  font-size: 13px;
+}
+
+.bank-details-section .form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #90caf9;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.bank-details-section .form-group input:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.bank-details-section .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.bank-details-section .error-text {
+  margin-top: 8px;
+  color: #d32f2f;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Buyer Action Buttons */
+.btn-message {
+  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.btn-message:hover {
+  background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
+  transform: translateY(-1px);
+}
+
+.btn-cancel-dispute {
+  background: linear-gradient(135deg, #ff5722, #e64a19);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.btn-cancel-dispute:hover {
+  background: linear-gradient(135deg, #e64a19, #d84315);
+  transform: translateY(-1px);
+}
+
+/* Buyer Action Buttons */
+.btn-message {
+  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.btn-message:hover {
+  background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
+  transform: translateY(-1px);
+}
+
+.btn-cancel-dispute {
+  background: linear-gradient(135deg, #ff5722, #e64a19);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.btn-cancel-dispute:hover {
+  background: linear-gradient(135deg, #e64a19, #d84315);
+  transform: translateY(-1px);
+}
+
+/* Bank Details Card on Main Page */
+.bank-details-card {
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  border: 1px solid #81c784;
+}
+
+.bank-details-card h3 {
+  margin: 0 0 8px 0;
+  color: #2e7d32;
+  font-size: 18px;
+}
+
+.bank-details-card .info-text {
+  color: #388e3c;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.bank-details-card .bank-form {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.bank-details-card .form-group {
+  margin-bottom: 14px;
+}
+
+.bank-details-card .form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #2e7d32;
+  font-size: 13px;
+}
+
+.bank-details-card .form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #a5d6a7;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.bank-details-card .form-group input:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.bank-details-card .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.bank-details-card .error-text {
+  color: #d32f2f;
+  font-size: 12px;
+  margin: 8px 0;
+}
+
+.btn-save-bank {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  width: 100%;
+  margin-top: 12px;
+  transition: all 0.2s;
+}
+
+.btn-save-bank:hover {
+  background: linear-gradient(135deg, #388e3c, #2e7d32);
+  transform: translateY(-1px);
+}
+
+/* Bank Details Card on Main Page */
+.bank-details-card {
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  border: 1px solid #81c784;
+}
+
+.bank-details-card h3 {
+  margin: 0 0 8px 0;
+  color: #2e7d32;
+  font-size: 18px;
+}
+
+.bank-details-card .info-text {
+  color: #388e3c;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.bank-details-card .bank-form {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.bank-details-card .form-group {
+  margin-bottom: 14px;
+}
+
+.bank-details-card .form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #2e7d32;
+  font-size: 13px;
+}
+
+.bank-details-card .form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #a5d6a7;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.bank-details-card .form-group input:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.bank-details-card .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.bank-details-card .error-text {
+  color: #d32f2f;
+  font-size: 12px;
+  margin: 8px 0;
+}
+
+.btn-save-bank {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  width: 100%;
+  margin-top: 12px;
+  transition: all 0.2s;
+}
+
+.btn-save-bank:hover {
+  background: linear-gradient(135deg, #388e3c, #2e7d32);
+  transform: translateY(-1px);
+}
+
+/* Buyer Bank Details Card for Supplier */
+.buyer-bank-details-card {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #64b5f6;
+}
+
+.buyer-bank-details-card h4 {
+  margin: 0 0 8px 0;
+  color: #1565c0;
+  font-size: 16px;
+}
+
+.buyer-bank-details-card .info-text {
+  color: #1976d2;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.buyer-bank-details-card .bank-info {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.buyer-bank-details-card .bank-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #e3f2fd;
+}
+
+.buyer-bank-details-card .bank-row:last-child {
+  border-bottom: none;
+}
+
+.buyer-bank-details-card .bank-row .label {
+  color: #666;
+  font-size: 13px;
+}
+
+.buyer-bank-details-card .bank-row .value {
+  color: #1565c0;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* Waiting for Bank Details Card */
+.waiting-bank-details-card {
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #ffb74d;
+}
+
+.waiting-bank-details-card h4 {
+  margin: 0 0 8px 0;
+  color: #e65100;
+  font-size: 16px;
+}
+
+.waiting-bank-details-card p {
+  color: #f57c00;
+  font-size: 13px;
+  margin: 0;
+}
+
+/* Buyer Bank Details Card for Supplier */
+.buyer-bank-details-card {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #64b5f6;
+}
+
+.buyer-bank-details-card h4 {
+  margin: 0 0 8px 0;
+  color: #1565c0;
+  font-size: 16px;
+}
+
+.buyer-bank-details-card .info-text {
+  color: #1976d2;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.buyer-bank-details-card .bank-info {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.buyer-bank-details-card .bank-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #e3f2fd;
+}
+
+.buyer-bank-details-card .bank-row:last-child {
+  border-bottom: none;
+}
+
+.buyer-bank-details-card .bank-row .label {
+  color: #666;
+  font-size: 13px;
+}
+
+.buyer-bank-details-card .bank-row .value {
+  color: #1565c0;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* Waiting for Bank Details Card */
+.waiting-bank-details-card {
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #ffb74d;
+}
+
+.waiting-bank-details-card h4 {
+  margin: 0 0 8px 0;
+  color: #e65100;
+  font-size: 16px;
+}
+
+.waiting-bank-details-card p {
+  color: #f57c00;
+  font-size: 13px;
+  margin: 0;
+}
+
+/* Refund Transaction Modal */
+.refund-modal {
+  max-width: 500px;
+}
+
+.refund-modal .refund-info {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.refund-modal .refund-info p {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+/* Refund Transaction Card for Buyer */
+.refund-transaction-card {
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  border: 2px solid #4caf50;
+}
+
+.refund-transaction-card h3 {
+  margin: 0 0 8px 0;
+  color: #2e7d32;
+  font-size: 18px;
+}
+
+.refund-transaction-card .info-text {
+  color: #388e3c;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.refund-transaction-card .transaction-details {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.refund-transaction-card .detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #e8f5e9;
+}
+
+.refund-transaction-card .detail-row:last-child {
+  border-bottom: none;
+}
+
+.refund-transaction-card .detail-row .label {
+  color: #666;
+  font-size: 14px;
+}
+
+.refund-transaction-card .detail-row .value {
+  color: #2e7d32;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.refund-transaction-card .detail-row .value.amount {
+  font-size: 18px;
+  color: #1b5e20;
+}
+
+.refund-transaction-card .proof-section {
+  padding: 10px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.refund-transaction-card .proof-link {
+  color: #1976d2;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.refund-transaction-card .proof-link:hover {
+  text-decoration: underline;
+}
+
+.refund-transaction-card .confirmation-actions {
+  text-align: center;
+  padding-top: 10px;
+}
+
+.refund-transaction-card .confirm-prompt {
+  color: #1b5e20;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.btn-confirm-refund {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.btn-confirm-refund:hover {
+  background: linear-gradient(135deg, #388e3c, #2e7d32);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.refund-transaction-card .refund-confirmed {
+  background: #c8e6c9;
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.refund-transaction-card .confirmed-badge {
+  background: #4caf50;
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.refund-transaction-card .refund-confirmed p {
+  margin: 10px 0 0;
+  color: #2e7d32;
+  font-size: 13px;
+}
+
+/* Refund Payment Form - Supplier */
+.refund-payment-form {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px dashed #e0e0e0;
+}
+
+.refund-payment-form h5 {
+  color: #2e7d32;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.refund-payment-form .form-info {
+  color: #666;
+  font-size: 13px;
+  margin-bottom: 15px;
+}
+
+.refund-payment-form .form-group {
+  margin-bottom: 15px;
+}
+
+.refund-payment-form .form-group label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.refund-payment-form .form-group input,
+.refund-payment-form .form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.refund-payment-form .form-group input:focus,
+.refund-payment-form .form-group textarea:focus {
+  outline: none;
+  border-color: #ff9800;
+  box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.1);
+}
+
+.refund-payment-form .form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.refund-payment-form .form-group.half {
+  flex: 1;
+}
+
+.btn-submit-refund {
+  width: 100%;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-submit-refund:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+}
+
+.btn-submit-refund:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Refund Submitted Info */
+.refund-submitted-info {
+  margin-top: 20px;
+  padding: 15px;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-radius: 8px;
+  border: 1px solid #a5d6a7;
+}
+
+.refund-submitted-info h5 {
+  color: #2e7d32;
+  margin-bottom: 12px;
+}
+
+.transaction-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transaction-details .detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px dashed #c8e6c9;
+}
+
+.transaction-details .detail-row:last-child {
+  border-bottom: none;
+}
+
+.transaction-details .label {
+  font-size: 13px;
+  color: #555;
+}
+
+.transaction-details .value {
+  font-weight: 600;
+  color: #333;
+}
+
+.transaction-details .value.highlight {
+  color: #1565c0;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.transaction-details .proof-link {
+  color: #1565c0;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.transaction-details .proof-link:hover {
+  text-decoration: underline;
+}
+
+.confirmation-status {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.confirmation-status.confirmed {
+  background: #c8e6c9;
+  color: #2e7d32;
+}
+
+.confirmation-status.pending {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+/* Refund Payment Form - Supplier */
+.refund-payment-form {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px dashed #e0e0e0;
+}
+
+.refund-payment-form h5 {
+  color: #2e7d32;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.refund-payment-form .form-info {
+  color: #666;
+  font-size: 13px;
+  margin-bottom: 15px;
+}
+
+.refund-payment-form .form-group {
+  margin-bottom: 15px;
+}
+
+.refund-payment-form .form-group label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.refund-payment-form .form-group input,
+.refund-payment-form .form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.refund-payment-form .form-group input:focus,
+.refund-payment-form .form-group textarea:focus {
+  outline: none;
+  border-color: #ff9800;
+  box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.1);
+}
+
+.refund-payment-form .form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.refund-payment-form .form-group.half {
+  flex: 1;
+}
+
+.btn-submit-refund {
+  width: 100%;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-submit-refund:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+}
+
+.btn-submit-refund:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Refund Submitted Info */
+.refund-submitted-info {
+  margin-top: 20px;
+  padding: 15px;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-radius: 8px;
+  border: 1px solid #a5d6a7;
+}
+
+.refund-submitted-info h5 {
+  color: #2e7d32;
+  margin-bottom: 12px;
+}
+
+.transaction-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transaction-details .detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px dashed #c8e6c9;
+}
+
+.transaction-details .detail-row:last-child {
+  border-bottom: none;
+}
+
+.transaction-details .label {
+  font-size: 13px;
+  color: #555;
+}
+
+.transaction-details .value {
+  font-weight: 600;
+  color: #333;
+}
+
+.transaction-details .value.highlight {
+  color: #1565c0;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.transaction-details .proof-link {
+  color: #1565c0;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.transaction-details .proof-link:hover {
+  text-decoration: underline;
+}
+
+.confirmation-status {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.confirmation-status.confirmed {
+  background: #c8e6c9;
+  color: #2e7d32;
+}
+
+.confirmation-status.pending {
+  background: #fff3e0;
+  color: #e65100;
+}

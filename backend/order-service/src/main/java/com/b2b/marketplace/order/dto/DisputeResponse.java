@@ -46,8 +46,16 @@ public class DisputeResponse {
     private BigDecimal refundAmount;
     private String refundStatus;
     private String refundStatusLabel;
-    private LocalDateTime refundProcessedAt;
-    
+        private LocalDateTime refundProcessedAt;
+
+    // Buyer Bank Details (for refund)
+    private BuyerBankDetailsDTO buyerBankDetails;
+
+    // Refund Transaction (from supplier)
+    private RefundTransactionDTO refundTransaction;
+    private Boolean refundConfirmed;
+    private LocalDateTime refundConfirmedAt;
+
     // Resolution
     private String resolutionType;
     private String resolutionTypeLabel;
@@ -281,8 +289,40 @@ public class DisputeResponse {
         return refundProcessedAt;
     }
 
-    public void setRefundProcessedAt(LocalDateTime refundProcessedAt) {
+        public void setRefundProcessedAt(LocalDateTime refundProcessedAt) {
         this.refundProcessedAt = refundProcessedAt;
+    }
+
+    public BuyerBankDetailsDTO getBuyerBankDetails() {
+        return buyerBankDetails;
+    }
+
+    public void setBuyerBankDetails(BuyerBankDetailsDTO buyerBankDetails) {
+        this.buyerBankDetails = buyerBankDetails;
+    }
+
+    public RefundTransactionDTO getRefundTransaction() {
+        return refundTransaction;
+    }
+
+    public void setRefundTransaction(RefundTransactionDTO refundTransaction) {
+        this.refundTransaction = refundTransaction;
+    }
+
+    public Boolean getRefundConfirmed() {
+        return refundConfirmed;
+    }
+
+    public void setRefundConfirmed(Boolean refundConfirmed) {
+        this.refundConfirmed = refundConfirmed;
+    }
+
+    public LocalDateTime getRefundConfirmedAt() {
+        return refundConfirmedAt;
+    }
+
+    public void setRefundConfirmedAt(LocalDateTime refundConfirmedAt) {
+        this.refundConfirmedAt = refundConfirmedAt;
     }
 
     public String getResolutionType() {
@@ -623,3 +663,5 @@ public class DisputeResponse {
         };
     }
 }
+
+
