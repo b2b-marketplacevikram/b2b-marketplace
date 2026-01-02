@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,6 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class OrderService {
@@ -50,11 +52,19 @@ public class OrderService {
     @Autowired
     private SupplierBankDetailsRepository supplierBankDetailsRepository;
     
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private static final String EMAIL_SERVICE_URL = "http://localhost:8087/api/email";
     private static final String USER_SERVICE_URL = "http://localhost:8081/api/users";
     private static final String NOTIFICATION_SERVICE_URL = "http://localhost:8086/api/notifications";
     private static final String PRODUCT_SERVICE_URL = "http://localhost:8082/api/products";
+
+    public OrderService() {
+        // Configure RestTemplate with timeouts (5 seconds connect, 10 seconds read)
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000);
+        factory.setReadTimeout(10000);
+        this.restTemplate = new RestTemplate(factory);
+    }
 
     // ==================== Stock Management ====================
     
@@ -372,20 +382,24 @@ public class OrderService {
             }
         }
         
-        // Send order confirmation email asynchronously
-        try {
-            sendOrderConfirmationEmail(order);
-        } catch (Exception e) {
-            log.error("Failed to send order confirmation email for order {}: {}", order.getOrderNumber(), e.getMessage());
-            // Don't fail the order creation if email fails
-        }
+        // Send order confirmation email asynchronously (non-blocking)
+        final Order savedOrder = order;
+        CompletableFuture.runAsync(() -> {
+            try {
+                sendOrderConfirmationEmail(savedOrder);
+            } catch (Exception e) {
+                log.error("Failed to send order confirmation email for order {}: {}", savedOrder.getOrderNumber(), e.getMessage());
+            }
+        });
         
-        // Send real-time notification to buyer and supplier
-        try {
-            sendOrderCreatedNotification(order);
-        } catch (Exception e) {
-            log.error("Failed to send order notification for order {}: {}", order.getOrderNumber(), e.getMessage());
-        }
+        // Send real-time notification to buyer and supplier asynchronously (non-blocking)
+        CompletableFuture.runAsync(() -> {
+            try {
+                sendOrderCreatedNotification(savedOrder);
+            } catch (Exception e) {
+                log.error("Failed to send order notification for order {}: {}", savedOrder.getOrderNumber(), e.getMessage());
+            }
+        });
 
         return mapToResponse(order);
     }
