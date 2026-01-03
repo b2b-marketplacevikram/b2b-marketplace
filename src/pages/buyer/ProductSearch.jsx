@@ -15,7 +15,7 @@ function ProductSearch() {
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [productsPerPage] = useState(12)
-  const { user } = useAuth()
+  const { user, isSupplier } = useAuth()
   const notifiedSearches = useRef(new Set()) // Track notified searches to avoid duplicates
   const [showQuoteModal, setShowQuoteModal] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -85,6 +85,11 @@ function ProductSearch() {
             location: p.origin || 'N/A'
           })) : []
           
+          // If supplier is logged in, show only their products
+          if (isSupplier && user?.id) {
+            mappedProducts = mappedProducts.filter(p => p.supplierId === user.id)
+          }
+
           // Apply client-side filters
           mappedProducts = mappedProducts.filter(p => {
             // Price filter
@@ -171,7 +176,7 @@ function ProductSearch() {
       
       // Only notify if we have suppliers with products
       if (suppliers.length > 0) {
-        console.log(`📱 Sending WhatsApp notifications to ${suppliers.length} suppliers for search: "${searchQuery}"`)
+        console.log(`Ã°Å¸â€œÂ± Sending WhatsApp notifications to ${suppliers.length} suppliers for search: "${searchQuery}"`)
         
         // Non-blocking API call - don't wait for response
         whatsappAPI.notifyProductSearch(
@@ -181,7 +186,7 @@ function ProductSearch() {
           user?.id || null
         ).then(result => {
           if (result.success) {
-            console.log('✅ Supplier notifications sent:', result.data)
+            console.log('Ã¢Å“â€¦ Supplier notifications sent:', result.data)
           }
         }).catch(err => {
           // Silently fail - this is a non-critical feature
