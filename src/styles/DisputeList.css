@@ -1,70 +1,82 @@
+﻿/* ============================================
+   DISPUTE LIST PAGE - MODERN DESIGN
+   ============================================ */
+
 .dispute-list-page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
   padding: 2rem;
 }
 
-.dispute-list-container {
-  max-width: 1000px;
+.page-container {
+  max-width: 1100px;
   margin: 0 auto;
 }
 
-/* Header */
+/* ============================================
+   PAGE HEADER
+   ============================================ */
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   margin-bottom: 1.5rem;
 }
 
-.header-content h1 {
+.page-header h1 {
   margin: 0 0 0.5rem;
-  font-size: 1.75rem;
-  color: #1a1a2e;
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #1a1a2e 0%, #4a4a6a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.header-content .subtitle {
-  color: #666;
+.page-header p {
   margin: 0;
+  color: #666;
+  font-size: 1rem;
 }
 
-.btn-view-orders {
-  padding: 0.75rem 1.5rem;
-  background: #f0f0f0;
-  color: #333;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 500;
-}
-
-/* Compliance Notice */
+/* ============================================
+   COMPLIANCE NOTICE
+   ============================================ */
 .compliance-notice {
   display: flex;
   gap: 1rem;
-  padding: 1rem 1.5rem;
-  background: #e8f5e9;
-  border-radius: 12px;
-  border-left: 4px solid #2e7d32;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-radius: 16px;
+  border-left: 5px solid #2e7d32;
   margin-bottom: 1.5rem;
+  box-shadow: 0 4px 15px rgba(46, 125, 50, 0.15);
+  align-items: center;
 }
 
 .compliance-notice .notice-icon {
-  font-size: 2rem;
+  font-size: 2.5rem;
+  flex-shrink: 0;
 }
 
-.compliance-notice h4 {
-  margin: 0 0 0.25rem;
-  color: #2e7d32;
+.compliance-notice .notice-content {
+  flex: 1;
+}
+
+.compliance-notice strong {
+  display: block;
+  color: #1b5e20;
   font-size: 1rem;
+  margin-bottom: 0.25rem;
 }
 
 .compliance-notice p {
   margin: 0;
-  color: #555;
+  color: #2e7d32;
   font-size: 0.9rem;
+  line-height: 1.5;
 }
 
-/* Filter Tabs */
+/* ============================================
+   FILTER TABS
+   ============================================ */
 .filter-tabs {
   display: flex;
   gap: 0.5rem;
@@ -72,189 +84,243 @@
   flex-wrap: wrap;
   background: white;
   padding: 0.5rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
-.filter-tabs .tab {
-  padding: 0.6rem 1.2rem;
+.filter-tabs button {
+  padding: 0.7rem 1.25rem;
   border: none;
   background: transparent;
   color: #666;
   font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.2s;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
-.filter-tabs .tab:hover {
-  background: #f0f0f0;
+.filter-tabs button:hover {
+  background: #f5f5f5;
+  color: #333;
 }
 
-.filter-tabs .tab.active {
-  background: #1a1a2e;
+.filter-tabs button.active {
+  background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4a 100%);
   color: white;
+  box-shadow: 0 4px 12px rgba(26, 26, 46, 0.3);
 }
 
-/* Disputes List */
-.disputes-list {
+/* ============================================
+   DISPUTES GRID
+   ============================================ */
+.disputes-grid {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
 .dispute-card {
+  display: block;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
 }
 
-.dispute-header {
+.dispute-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  border-color: #ff6b00;
+}
+
+/* Card Header */
+.dispute-card .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
   border-bottom: 1px solid #eee;
 }
 
-.ticket-info {
+.dispute-card .ticket-number {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-weight: 600;
+  color: #666;
+  font-size: 0.85rem;
+  background: #f0f0f0;
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+}
+
+/* Subject */
+.dispute-card .subject {
+  margin: 0;
+  padding: 1rem 1.5rem 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  line-height: 1.4;
+}
+
+/* Meta Row */
+.dispute-card .meta-row {
   display: flex;
-  align-items: center;
   gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
   flex-wrap: wrap;
 }
 
-.ticket-number {
-  font-weight: 700;
-  color: #1a1a2e;
-  font-family: monospace;
-  font-size: 0.95rem;
-}
-
-.dispute-meta .order-ref {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-/* Status Badges */
-.status-badge {
-  padding: 0.3rem 0.8rem;
+/* Type Badge */
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  color: #1565c0;
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 500;
 }
 
-.status-open { background: #fff3cd; color: #856404; }
-.status-acknowledged { background: #d1ecf1; color: #0c5460; }
-.status-review { background: #e2e3f3; color: #383d8f; }
-.status-responded { background: #d4edda; color: #155724; }
-.status-awaiting { background: #ffeaa7; color: #6c5ce7; }
-.status-escalated { background: #ffebee; color: #c62828; }
-.status-proposed { background: #e3f2fd; color: #1565c0; }
-.status-resolved { background: #c8e6c9; color: #2e7d32; }
-.status-closed { background: #f5f5f5; color: #666; }
-.status-reopened { background: #fff3e0; color: #e65100; }
+/* Status Badges */
+.status-badge {
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-open { 
+  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+  color: #f57f17;
+  box-shadow: 0 2px 8px rgba(245, 127, 23, 0.2);
+}
+
+.status-acknowledged { 
+  background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+  color: #00838f;
+  box-shadow: 0 2px 8px rgba(0, 131, 143, 0.2);
+}
+
+.status-review { 
+  background: linear-gradient(135deg, #ede7f6 0%, #d1c4e9 100%);
+  color: #5e35b1;
+  box-shadow: 0 2px 8px rgba(94, 53, 177, 0.2);
+}
+
+.status-responded { 
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  color: #2e7d32;
+  box-shadow: 0 2px 8px rgba(46, 125, 50, 0.2);
+}
+
+.status-escalated { 
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  color: #c62828;
+  box-shadow: 0 2px 8px rgba(198, 40, 40, 0.2);
+  animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 2px 8px rgba(198, 40, 40, 0.2); }
+  50% { box-shadow: 0 2px 15px rgba(198, 40, 40, 0.4); }
+}
+
+.status-proposed { 
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  color: #1565c0;
+  box-shadow: 0 2px 8px rgba(21, 101, 192, 0.2);
+}
+
+.status-resolved { 
+  background: linear-gradient(135deg, #e8f5e9 0%, #a5d6a7 100%);
+  color: #1b5e20;
+  box-shadow: 0 2px 8px rgba(27, 94, 32, 0.2);
+}
+
+.status-closed { 
+  background: linear-gradient(135deg, #eceff1 0%, #cfd8dc 100%);
+  color: #546e7a;
+}
 
 /* Priority Badges */
 .priority-badge {
-  padding: 0.25rem 0.6rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.priority-low { background: #e0e0e0; color: #666; }
-.priority-medium { background: #fff3cd; color: #856404; }
-.priority-high { background: #ffe0b2; color: #e65100; }
-.priority-urgent { background: #ffcdd2; color: #c62828; }
-
-.escalation-badge {
-  padding: 0.25rem 0.6rem;
-  background: #ffebee;
-  color: #c62828;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 500;
+.priority-low { 
+  background: #e0e0e0; 
+  color: #757575; 
 }
 
-/* Dispute Body */
-.dispute-body {
-  padding: 1.25rem 1.5rem;
+.priority-medium { 
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  color: #e65100; 
 }
 
-.dispute-subject {
-  margin: 0 0 0.5rem;
-  font-size: 1.1rem;
-  color: #1a1a2e;
+.priority-high { 
+  background: linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%);
+  color: #d84315; 
 }
 
-.type-badge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  background: #f0f0f0;
-  color: #666;
-  border-radius: 4px;
-  font-size: 0.85rem;
+.priority-urgent { 
+  background: linear-gradient(135deg, #ffebee 0%, #ef9a9a 100%);
+  color: #b71c1c;
+  animation: pulse-urgent 1.5s infinite;
 }
 
-.dispute-description {
-  margin: 0.75rem 0 0;
-  color: #666;
-  line-height: 1.5;
-  font-size: 0.95rem;
+@keyframes pulse-urgent {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
-/* Dispute Footer */
-.dispute-footer {
+/* Info Row */
+.dispute-card .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
-  background: #fafafa;
-  border-top: 1px solid #eee;
-}
-
-.footer-info {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  font-size: 0.85rem;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.9rem;
   color: #666;
 }
 
-.days-left {
-  padding: 0.2rem 0.5rem;
-  background: #e3f2fd;
+.dispute-card .order {
   color: #1565c0;
-  border-radius: 4px;
+  font-weight: 500;
 }
 
-.days-left.urgent {
-  background: #ffebee;
+.dispute-card .date {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+/* Escalation Info */
+.escalation-info {
+  margin: 0.5rem 1.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
   color: #c62828;
-}
-
-.footer-actions {
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
   display: flex;
   align-items: center;
-  gap: 1rem;
-}
-
-.message-count {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.btn-view {
-  padding: 0.5rem 1rem;
-  background: #1a1a2e;
-  color: white;
-  text-decoration: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  gap: 0.5rem;
+  border-left: 4px solid #c62828;
 }
 
 /* Refund Info */
@@ -262,107 +328,226 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1.5rem;
-  background: #f5f5f5;
-  border-top: 1px dashed #ddd;
+  margin: 0.5rem 1.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-radius: 10px;
   font-size: 0.9rem;
-}
-
-.refund-label {
   font-weight: 500;
-}
-
-.refund-status {
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
-}
-
-.refund-status.requested { background: #fff3cd; color: #856404; }
-.refund-status.approved { background: #d4edda; color: #155724; }
-.refund-status.processing { background: #e3f2fd; color: #1565c0; }
-.refund-status.completed { background: #c8e6c9; color: #2e7d32; }
-.refund-status.rejected { background: #ffebee; color: #c62828; }
-
-.refund-amount {
-  font-weight: 600;
   color: #2e7d32;
+  flex-wrap: wrap;
+}
+
+.refund-info .refund-status {
+  padding: 0.3rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.refund-status.requested { 
+  background: #fff3cd; 
+  color: #856404; 
+}
+
+.refund-status.approved { 
+  background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+  color: #1b5e20; 
+}
+
+.refund-status.processing { 
+  background: #e3f2fd; 
+  color: #1565c0; 
+}
+
+.refund-status.completed { 
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
+}
+
+.refund-status.rejected { 
+  background: #ffebee; 
+  color: #c62828; 
 }
 
 /* Overdue Warning */
 .overdue-warning {
-  padding: 0.75rem 1.5rem;
-  background: #fff3e0;
+  margin: 0.5rem 1.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
   color: #e65100;
+  border-radius: 10px;
   font-size: 0.9rem;
-  border-top: 1px solid #ffcc80;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-left: 4px solid #e65100;
+  animation: warning-pulse 2s infinite;
 }
 
-/* Empty State */
+@keyframes warning-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+/* Card Footer */
+.dispute-card .card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+  border-top: 1px solid #eee;
+}
+
+.dispute-card .days-info {
+  font-size: 0.85rem;
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dispute-card .view-link {
+  color: #ff6b00;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.dispute-card:hover .view-link {
+  color: #e55a00;
+  transform: translateX(3px);
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
   background: white;
-  border-radius: 12px;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .empty-state .empty-icon {
-  font-size: 4rem;
+  font-size: 5rem;
+  display: block;
   margin-bottom: 1rem;
+  opacity: 0.8;
 }
 
 .empty-state h3 {
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.75rem;
+  font-size: 1.5rem;
   color: #1a1a2e;
 }
 
 .empty-state p {
   color: #666;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  font-size: 1rem;
 }
 
 .empty-state .btn-primary {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background: #ff6b00;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 2rem;
+  background: linear-gradient(135deg, #ff6b00 0%, #ff8533 100%);
   color: white;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
 }
 
-/* Loading */
+.empty-state .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 0, 0.4);
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
 .loading {
   text-align: center;
-  padding: 3rem;
+  padding: 4rem;
   color: #666;
+  font-size: 1.1rem;
 }
 
-/* Responsive */
+.loading::after {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #ddd;
+  border-top-color: #ff6b00;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
 @media (max-width: 768px) {
   .dispute-list-page {
     padding: 1rem;
   }
 
-  .page-header {
-    flex-direction: column;
-    gap: 1rem;
+  .page-header h1 {
+    font-size: 1.5rem;
   }
 
-  .dispute-header {
+  .compliance-notice {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .dispute-footer {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
+    text-align: center;
+    padding: 1rem;
   }
 
   .filter-tabs {
     overflow-x: auto;
     flex-wrap: nowrap;
-    padding-bottom: 0.5rem;
+    padding: 0.5rem;
+    gap: 0.25rem;
+  }
+
+  .filter-tabs button {
+    white-space: nowrap;
+    font-size: 0.8rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .dispute-card .card-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .dispute-card .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .dispute-card .card-footer {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
   }
 }
