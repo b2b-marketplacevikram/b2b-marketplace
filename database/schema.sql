@@ -177,8 +177,8 @@ CREATE TABLE orders (
     order_number VARCHAR(50) NOT NULL UNIQUE,
     buyer_id BIGINT NOT NULL,
     supplier_id BIGINT NOT NULL,
-    status ENUM('PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED') DEFAULT 'PENDING',
-    payment_status ENUM('PENDING', 'PAID', 'FAILED', 'REFUNDED') DEFAULT 'PENDING',
+    status ENUM('PENDING', 'AWAITING_PAYMENT', 'PAYMENT_VERIFIED', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED') DEFAULT 'PENDING',
+    payment_status ENUM('PENDING', 'AWAITING_VERIFICATION', 'PAID', 'FAILED', 'REFUND_PENDING', 'REFUNDED') DEFAULT 'PENDING',
     payment_method VARCHAR(50),
     subtotal DECIMAL(12,2) NOT NULL,
     tax_amount DECIMAL(12,2) DEFAULT 0.00,
@@ -201,13 +201,41 @@ CREATE TABLE orders (
     cancellation_reason TEXT,
     refund_reason TEXT,
     refund_amount DECIMAL(12,2),
+    -- B2B Payment Fields
+    po_number VARCHAR(100),
+    payment_type ENUM('URGENT_ONLINE', 'BANK_TRANSFER', 'UPI', 'CREDIT_TERMS') DEFAULT 'BANK_TRANSFER',
+    payment_reference VARCHAR(255),
+    payment_proof_url VARCHAR(500),
+    payment_verified_at TIMESTAMP NULL,
+    payment_verified_by BIGINT,
+    credit_terms_days INT DEFAULT 0,
+    due_date DATE,
+    credit_limit DECIMAL(12,2),
+    payment_commission_rate DECIMAL(5,2) DEFAULT 0.00,
+    payment_commission_amount DECIMAL(12,2) DEFAULT 0.00,
+    payment_commission_paid_by ENUM('BUYER', 'PLATFORM') DEFAULT 'BUYER',
+    is_urgent BOOLEAN DEFAULT FALSE,
+    
+    -- GST Invoice Fields
+    invoice_number VARCHAR(50) UNIQUE,
+    invoice_date TIMESTAMP NULL,
+    buyer_gstin VARCHAR(15),
+    supplier_gstin VARCHAR(15),
+    place_of_supply VARCHAR(100),
+    cgst_amount DECIMAL(12,2) DEFAULT 0.00,
+    sgst_amount DECIMAL(12,2) DEFAULT 0.00,
+    igst_amount DECIMAL(12,2) DEFAULT 0.00,
+    cess_amount DECIMAL(12,2) DEFAULT 0.00,
+    is_same_state BOOLEAN DEFAULT TRUE,
+    
     FOREIGN KEY (buyer_id) REFERENCES buyers(id) ON DELETE RESTRICT,
     FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE RESTRICT,
     INDEX idx_order_number (order_number),
     INDEX idx_buyer (buyer_id),
     INDEX idx_supplier (supplier_id),
     INDEX idx_status (status),
-    INDEX idx_created (created_at)
+    INDEX idx_created (created_at),
+    INDEX idx_po_number (po_number)
 );
 
 -- Order Items Table
@@ -216,9 +244,12 @@ CREATE TABLE order_items (
     order_id BIGINT NOT NULL,
     product_id BIGINT NOT NULL,
     product_name VARCHAR(500) NOT NULL,
+    product_image TEXT,
     quantity INT NOT NULL,
     unit_price DECIMAL(12,2) NOT NULL,
     total_price DECIMAL(12,2) NOT NULL,
+    hsn_code VARCHAR(10),
+    gst_rate DECIMAL(5,2),
     specifications JSON,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
@@ -599,12 +630,12 @@ CREATE TABLE disputes (
     supplier_name VARCHAR(255),
     
     -- Dispute Details
-    dispute_type ENUM('PRODUCT_NOT_AS_DESCRIBED', 'PRODUCT_DAMAGED', 'PRODUCT_NOT_DELIVERED', 
-                      'WRONG_PRODUCT', 'QUALITY_ISSUE', 'QUANTITY_MISMATCH', 'LATE_DELIVERY',
-                      'PAYMENT_ISSUE', 'REFUND_NOT_RECEIVED', 'OTHER') NOT NULL,
-    status ENUM('OPEN', 'ACKNOWLEDGED', 'IN_PROGRESS', 'AWAITING_BUYER', 'AWAITING_SUPPLIER',
-                'ESCALATED', 'RESOLVED', 'CLOSED', 'REJECTED') DEFAULT 'OPEN',
-    priority ENUM('LOW', 'MEDIUM', 'HIGH', 'CRITICAL') DEFAULT 'MEDIUM',
+    dispute_type ENUM('PRODUCT_QUALITY', 'WRONG_PRODUCT', 'DAMAGED_PRODUCT', 'MISSING_ITEMS',
+                      'DELIVERY_ISSUE', 'DELAYED_DELIVERY', 'NOT_AS_DESCRIBED', 'PAYMENT_ISSUE',
+                      'REFUND_REQUEST', 'WARRANTY_CLAIM', 'OTHER') NOT NULL,
+    status ENUM('OPEN', 'ACKNOWLEDGED', 'UNDER_REVIEW', 'SUPPLIER_RESPONDED', 'AWAITING_BUYER',
+                'ESCALATED', 'RESOLUTION_PROPOSED', 'RESOLVED', 'CLOSED', 'REOPENED') DEFAULT 'OPEN',
+    priority ENUM('LOW', 'MEDIUM', 'HIGH', 'URGENT') DEFAULT 'MEDIUM',
     subject VARCHAR(255) NOT NULL,
     description TEXT,
     
@@ -615,12 +646,12 @@ CREATE TABLE disputes (
     -- Refund Request
     refund_requested BOOLEAN DEFAULT FALSE,
     refund_amount DECIMAL(12, 2),
-    refund_status ENUM('NOT_REQUESTED', 'PENDING', 'APPROVED', 'PROCESSING', 'COMPLETED', 'REJECTED'),
+    refund_status ENUM('NOT_REQUESTED', 'REQUESTED', 'APPROVED', 'PROCESSING', 'COMPLETED', 'REJECTED', 'PARTIAL'),
     refund_processed_at TIMESTAMP NULL,
     
     -- Resolution Details
-    resolution_type ENUM('REFUND_FULL', 'REFUND_PARTIAL', 'REPLACEMENT', 'CREDIT_NOTE', 
-                         'NO_ACTION', 'OTHER'),
+    resolution_type ENUM('FULL_REFUND', 'PARTIAL_REFUND', 'REPLACEMENT', 'REPAIR', 'CREDIT_NOTE',
+                         'REDELIVERY', 'EXPLANATION', 'NO_ACTION', 'BUYER_WITHDREW'),
     resolution_notes TEXT,
     resolved_by BIGINT,
     resolved_by_name VARCHAR(255),
@@ -742,46 +773,6 @@ CREATE TABLE refund_requests (
     INDEX idx_buyer (buyer_id),
     INDEX idx_supplier (supplier_id),
     INDEX idx_status (status)
-);
-
--- ==================== Refund Transactions Table ====================
-
--- Refund Transaction Table (Supplier submits refund proof, Buyer confirms receipt)
-CREATE TABLE refund_transactions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    dispute_id BIGINT NOT NULL,
-    ticket_number VARCHAR(50) NOT NULL,
-    supplier_id BIGINT NOT NULL,
-    buyer_id BIGINT NOT NULL,
-    
-    -- Transaction Details from Supplier
-    transaction_id VARCHAR(100) NOT NULL COMMENT 'Bank transaction/UTR number',
-    bank_name VARCHAR(100) COMMENT 'Bank from which refund was sent',
-    transaction_date DATETIME COMMENT 'Date when refund was processed',
-    proof_url VARCHAR(500) COMMENT 'URL to transaction proof/screenshot',
-    notes TEXT COMMENT 'Additional notes from supplier',
-    
-    -- Buyer Confirmation
-    buyer_confirmed BOOLEAN DEFAULT FALSE COMMENT 'Buyer confirmed receipt of refund',
-    confirmed_at DATETIME COMMENT 'When buyer confirmed',
-    confirmation_notes TEXT COMMENT 'Notes from buyer during confirmation',
-    
-    -- Timestamps
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    -- Foreign Keys
-    FOREIGN KEY (dispute_id) REFERENCES disputes(id) ON DELETE CASCADE,
-    FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE RESTRICT,
-    FOREIGN KEY (buyer_id) REFERENCES buyers(id) ON DELETE RESTRICT,
-    
-    -- Indexes
-    INDEX idx_ticket_number (ticket_number),
-    INDEX idx_dispute_id (dispute_id),
-    INDEX idx_supplier_id (supplier_id),
-    INDEX idx_buyer_id (buyer_id),
-    
-    UNIQUE KEY uk_ticket_number (ticket_number)
 );
 
 -- ==================== Refund Transactions Table ====================

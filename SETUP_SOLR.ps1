@@ -64,4 +64,5 @@ foreach ($f in $fields) {
     }
 }
 
-Write-Host "Solr setup finished. Verify: $solrUrl/"
+
+http://localhost:8983/solr/admin/cores?action=CREATE&name=products&configSet=_default

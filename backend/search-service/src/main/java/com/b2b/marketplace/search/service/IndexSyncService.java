@@ -102,6 +102,11 @@ public class IndexSyncService {
         doc.setCreatedAt(product.getCreatedAt());
         doc.setUpdatedAt(product.getUpdatedAt());
         
+        // Set images if available
+        if (product.getImages() != null && !product.getImages().isEmpty()) {
+            doc.setImageUrl(product.getImages().get(0).getImageUrl());
+        }
+        
         // Set category and supplier names (you could fetch from related tables)
         doc.setCategoryName(getCategoryName(product.getCategoryId()));
         doc.setSupplierName(getSupplierName(product.getSupplierId()));

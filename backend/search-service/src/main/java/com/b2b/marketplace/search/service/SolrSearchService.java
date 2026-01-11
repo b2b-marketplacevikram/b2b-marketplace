@@ -37,24 +37,25 @@ public class SolrSearchService {
             List<ProductDocument> docs = resp.getResults().stream()
                     .map(d -> {
                         ProductDocument pd = new ProductDocument();
-                        pd.setId((String) d.getFieldValue("id"));
-                        pd.setProductId(((Number) d.getFieldValue("productId")).longValue());
-                        pd.setName((String) d.getFieldValue("name"));
-                        pd.setDescription((String) d.getFieldValue("description"));
-                        pd.setSku((String) d.getFieldValue("sku"));
-                        pd.setPrice(d.getFieldValue("price") == null ? null : new java.math.BigDecimal(d.getFieldValue("price").toString()));
-                        pd.setMoq((Integer) d.getFieldValue("moq"));
-                        pd.setStockQuantity((Integer) d.getFieldValue("stockQuantity"));
-                        pd.setCategoryId(d.getFieldValue("categoryId") == null ? null : ((Number) d.getFieldValue("categoryId")).longValue());
-                        pd.setCategoryName((String) d.getFieldValue("categoryName"));
-                        pd.setSupplierId(d.getFieldValue("supplierId") == null ? null : ((Number) d.getFieldValue("supplierId")).longValue());
-                        pd.setSupplierName((String) d.getFieldValue("supplierName"));
-                        pd.setOrigin((String) d.getFieldValue("origin"));
-                        pd.setRating(d.getFieldValue("rating") == null ? null : Double.valueOf(d.getFieldValue("rating").toString()));
-                        pd.setReviewCount(d.getFieldValue("reviewCount") == null ? null : Integer.valueOf(d.getFieldValue("reviewCount").toString()));
+                        pd.setId(getStringValue(d, "id"));
+                        pd.setProductId(getLongValue(d, "productId"));
+                        pd.setName(getStringValue(d, "name"));
+                        pd.setDescription(getStringValue(d, "description"));
+                        pd.setSku(getStringValue(d, "sku"));
+                        Object priceVal = getFieldValue(d, "price");
+                        pd.setPrice(priceVal == null ? null : new java.math.BigDecimal(priceVal.toString()));
+                        pd.setMoq(getIntValue(d, "moq"));
+                        pd.setStockQuantity(getIntValue(d, "stockQuantity"));
+                        pd.setCategoryId(getLongValue(d, "categoryId"));
+                        pd.setCategoryName(getStringValue(d, "categoryName"));
+                        pd.setSupplierId(getLongValue(d, "supplierId"));
+                        pd.setSupplierName(getStringValue(d, "supplierName"));
+                        pd.setOrigin(getStringValue(d, "origin"));
+                        pd.setRating(getDoubleValue(d, "rating"));
+                        pd.setReviewCount(getIntValue(d, "reviewCount"));
                         java.util.Collection<?> tagsCol = d.getFieldValues("tags");
                         pd.setTags(tagsCol != null ? tagsCol.stream().map(Object::toString).collect(Collectors.toList()) : null);
-                        pd.setIsFeatured(d.getFieldValue("isFeatured") == null ? null : Boolean.valueOf(d.getFieldValue("isFeatured").toString()));
+                        pd.setIsFeatured(getBooleanValue(d, "isFeatured"));
                         return pd;
                     })
                     .collect(Collectors.toList());
@@ -170,6 +171,7 @@ public class SolrSearchService {
             doc.addField("tags", product.getTags());
             doc.addField("isFeatured", product.getIsFeatured());
             doc.addField("isActive", product.getIsActive());
+            doc.addField("imageUrl", product.getImageUrl());
 
             solrClient.add("products", doc);
             solrClient.commit("products");
@@ -187,5 +189,48 @@ public class SolrSearchService {
         } catch (Exception e) {
             log.error("Error deleting product {}: {}", id, e.getMessage());
         }
+    }
+
+    // Helper methods to safely extract values from Solr documents
+    private Object getFieldValue(org.apache.solr.common.SolrDocument doc, String field) {
+        Object value = doc.getFieldValue(field);
+        if (value instanceof java.util.List) {
+            java.util.List<?> list = (java.util.List<?>) value;
+            return list.isEmpty() ? null : list.get(0);
+        }
+        return value;
+    }
+
+    private String getStringValue(org.apache.solr.common.SolrDocument doc, String field) {
+        Object value = getFieldValue(doc, field);
+        return value != null ? value.toString() : null;
+    }
+
+    private Long getLongValue(org.apache.solr.common.SolrDocument doc, String field) {
+        Object value = getFieldValue(doc, field);
+        if (value == null) return null;
+        if (value instanceof Number) return ((Number) value).longValue();
+        return Long.parseLong(value.toString());
+    }
+
+    private Integer getIntValue(org.apache.solr.common.SolrDocument doc, String field) {
+        Object value = getFieldValue(doc, field);
+        if (value == null) return null;
+        if (value instanceof Number) return ((Number) value).intValue();
+        return Integer.parseInt(value.toString());
+    }
+
+    private Double getDoubleValue(org.apache.solr.common.SolrDocument doc, String field) {
+        Object value = getFieldValue(doc, field);
+        if (value == null) return null;
+        if (value instanceof Number) return ((Number) value).doubleValue();
+        return Double.parseDouble(value.toString());
+    }
+
+    private Boolean getBooleanValue(org.apache.solr.common.SolrDocument doc, String field) {
+        Object value = getFieldValue(doc, field);
+        if (value == null) return null;
+        if (value instanceof Boolean) return (Boolean) value;
+        return Boolean.parseBoolean(value.toString());
     }
 }

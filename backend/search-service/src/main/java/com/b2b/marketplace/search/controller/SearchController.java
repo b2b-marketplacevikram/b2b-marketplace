@@ -14,7 +14,6 @@ import java.util.Collections;
 @RestController
 @RequestMapping("/api/search")
 @Slf4j
-@CrossOrigin(origins = "*")
 public class SearchController {
     
     private final SolrSearchService solrSearchService;

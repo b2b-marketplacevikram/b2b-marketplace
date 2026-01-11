@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solr Schema Setup - B2B Marketplace</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .step h2 {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        .url-display {
+            background: #2d3748;
+            color: #48bb78;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        .progress {
+            margin: 20px 0;
+        }
+        .progress-bar {
+            background: #e9ecef;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .check-mark {
+            color: #28a745;
+            font-size: 20px;
+            margin-right: 10px;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Solr Schema Setup Tool</h1>
+        <p class="subtitle">Easy setup for B2B Marketplace Products Collection</p>
+
+        <div class="info">
+            <strong>📋 What this tool does:</strong><br>
+            This tool will automatically create the 'products' core and add all required fields to your Solr schema.
+            No scripts or command line needed!
+        </div>
+
+        <div class="step">
+            <h2><span class="step-number">1</span>Check Solr Connection</h2>
+            <p>Make sure Solr is running on http://localhost:8983</p>
+            <button onclick="checkSolr()">Test Connection</button>
+            <div id="connectionStatus"></div>
+        </div>
+
+        <div class="step">
+            <h2><span class="step-number">2</span>Create Products Core</h2>
+            <p>This will create a new core named 'products' for storing product data.</p>
+            <button onclick="createCore()" id="createCoreBtn">Create Core</button>
+            <div id="coreStatus"></div>
+        </div>
+
+        <div class="step">
+            <h2><span class="step-number">3</span>Setup Schema Fields</h2>
+            <p>Add all required fields for product search (name, description, category, price, etc.)</p>
+            <button onclick="setupSchema()" id="schemaBtn">Setup All Fields</button>
+            <div class="progress" id="schemaProgress" style="display:none;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill">0%</div>
+                </div>
+            </div>
+            <div id="schemaStatus"></div>
+        </div>
+
+        <div class="step">
+            <h2><span class="step-number">4</span>Verify Setup</h2>
+            <p>Check that everything is configured correctly.</p>
+            <button onclick="verifySetup()">Verify Setup</button>
+            <div id="verifyStatus"></div>
+        </div>
+
+        <div class="info" style="margin-top: 30px;">
+            <strong>💡 After Setup:</strong><br>
+            1. Visit the Solr Admin UI: <a href="http://localhost:8983/solr/#/" target="_blank">http://localhost:8983/solr/#/</a><br>
+            2. Restart your search-service backend<br>
+            3. Your products will be automatically indexed!
+        </div>
+    </div>
+
+    <script>
+        const SOLR_URL = 'http://localhost:8983/solr';
+
+        async function checkSolr() {
+            const status = document.getElementById('connectionStatus');
+            status.innerHTML = '<p>Checking connection...</p>';
+            
+            try {
+                const response = await fetch(`${SOLR_URL}/admin/cores?action=STATUS&wt=json`);
+                if (response.ok) {
+                    const data = await response.json();
+                    status.innerHTML = '<div class="success"><span class="check-mark">✓</span>Solr is running! Found cores: ' + Object.keys(data.status).join(', ') + '</div>';
+                } else {
+                    status.innerHTML = '<div class="error">✗ Solr responded but with error: ' + response.status + '</div>';
+                }
+            } catch (error) {
+                status.innerHTML = '<div class="error">✗ Cannot connect to Solr. Make sure it\'s running at http://localhost:8983<br>Error: ' + error.message + '</div>';
+            }
+        }
+
+        async function createCore() {
+            const status = document.getElementById('coreStatus');
+            const btn = document.getElementById('createCoreBtn');
+            btn.disabled = true;
+            status.innerHTML = '<p>Creating products core...</p>';
+            
+            try {
+                // Check if core already exists
+                const checkResponse = await fetch(`${SOLR_URL}/admin/cores?action=STATUS&core=products&wt=json`);
+                const checkData = await checkResponse.json();
+                
+                if (checkData.status && checkData.status.products && checkData.status.products.instanceDir) {
+                    status.innerHTML = '<div class="success"><span class="check-mark">✓</span>Core "products" already exists!</div>';
+                    btn.disabled = false;
+                    return;
+                }
+
+                // Create the core - For Solr 9.x, we need to specify configSet
+                const createUrl = `${SOLR_URL}/admin/cores?action=CREATE&name=products&configSet=_default&wt=json`;
+                const response = await fetch(createUrl);
+                const data = await response.json();
+                
+                if (response.ok && data.responseHeader && data.responseHeader.status === 0) {
+                    status.innerHTML = '<div class="success"><span class="check-mark">✓</span>Core "products" created successfully!</div>';
+                } else {
+                    status.innerHTML = '<div class="error">✗ Error creating core: ' + JSON.stringify(data) + '</div>';
+                }
+            } catch (error) {
+                status.innerHTML = '<div class="error">✗ Error: ' + error.message + '</div>';
+            }
+            btn.disabled = false;
+        }
+
+        async function setupSchema() {
+            const status = document.getElementById('schemaStatus');
+            const progress = document.getElementById('schemaProgress');
+            const progressFill = document.getElementById('progressFill');
+            const btn = document.getElementById('schemaBtn');
+            
+            btn.disabled = true;
+            progress.style.display = 'block';
+            status.innerHTML = '';
+
+            // Define all fields needed for products
+            const fields = [
+                { name: 'productId', type: 'plong', stored: true, indexed: true },
+                { name: 'name', type: 'text_general', stored: true, indexed: true },
+                { name: 'description', type: 'text_general', stored: true, indexed: true },
+                { name: 'sku', type: 'string', stored: true, indexed: true },
+                { name: 'price', type: 'pdouble', stored: true, indexed: true },
+                { name: 'moq', type: 'pint', stored: true, indexed: true },
+                { name: 'stockQuantity', type: 'pint', stored: true, indexed: true },
+                { name: 'categoryId', type: 'plong', stored: true, indexed: true },
+                { name: 'categoryName', type: 'string', stored: true, indexed: true },
+                { name: 'supplierId', type: 'plong', stored: true, indexed: true },
+                { name: 'supplierName', type: 'string', stored: true, indexed: true },
+                { name: 'origin', type: 'string', stored: true, indexed: true },
+                { name: 'rating', type: 'pdouble', stored: true, indexed: true },
+                { name: 'reviewCount', type: 'pint', stored: true, indexed: true },
+                { name: 'tags', type: 'text_general', stored: true, indexed: true, multiValued: true },
+                { name: 'isFeatured', type: 'boolean', stored: true, indexed: true },
+                { name: 'isActive', type: 'boolean', stored: true, indexed: true },
+                { name: 'createdAt', type: 'pdate', stored: true, indexed: true },
+                { name: 'updatedAt', type: 'pdate', stored: true, indexed: true }
+            ];
+
+            let successCount = 0;
+            let results = [];
+
+            for (let i = 0; i < fields.length; i++) {
+                const field = fields[i];
+                const percent = Math.round(((i + 1) / fields.length) * 100);
+                progressFill.style.width = percent + '%';
+                progressFill.textContent = percent + '%';
+
+                try {
+                    const response = await fetch(`${SOLR_URL}/products/schema`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 'add-field': field })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (response.ok || (data.errors && data.errors[0] && data.errors[0].errorMessages[0].includes('already exists'))) {
+                        successCount++;
+                        results.push(`<span class="check-mark">✓</span> ${field.name}`);
+                    } else {
+                        results.push(`✗ ${field.name}: ${JSON.stringify(data.errors || data)}`);
+                    }
+                } catch (error) {
+                    results.push(`✗ ${field.name}: ${error.message}`);
+                }
+            }
+
+            const resultHtml = results.join('<br>');
+            
+            if (successCount === fields.length) {
+                status.innerHTML = `<div class="success"><h3><span class="check-mark">✓</span>All ${successCount} fields configured successfully!</h3>${resultHtml}</div>`;
+            } else {
+                status.innerHTML = `<div class="info"><h3>Setup completed with ${successCount}/${fields.length} fields</h3>${resultHtml}</div>`;
+            }
+            
+            btn.disabled = false;
+        }
+
+        async function verifySetup() {
+            const status = document.getElementById('verifyStatus');
+            status.innerHTML = '<p>Verifying setup...</p>';
+
+            try {
+                // Check core exists
+                const coreResponse = await fetch(`${SOLR_URL}/admin/cores?action=STATUS&core=products&wt=json`);
+                const coreData = await coreResponse.json();
+                
+                let results = [];
+                
+                if (coreData.status && coreData.status.products) {
+                    results.push('<span class="check-mark">✓</span> Core "products" exists');
+                } else {
+                    results.push('✗ Core "products" not found');
+                    status.innerHTML = '<div class="error">' + results.join('<br>') + '</div>';
+                    return;
+                }
+
+                // Check schema fields
+                const schemaResponse = await fetch(`${SOLR_URL}/products/schema/fields?wt=json`);
+                const schemaData = await schemaResponse.json();
+                
+                const requiredFields = ['productId', 'name', 'description', 'categoryId', 'categoryName', 'price', 'supplierId', 'supplierName'];
+                const existingFields = schemaData.fields.map(f => f.name);
+                
+                let allFieldsExist = true;
+                requiredFields.forEach(field => {
+                    if (existingFields.includes(field)) {
+                        results.push(`<span class="check-mark">✓</span> Field "${field}" configured`);
+                    } else {
+                        results.push(`✗ Field "${field}" missing`);
+                        allFieldsExist = false;
+                    }
+                });
+
+                if (allFieldsExist) {
+                    results.push('<br><strong>🎉 Setup Complete! Your Solr is ready to use.</strong>');
+                    results.push('<br>Next: Restart your search-service backend to start indexing products.');
+                    status.innerHTML = '<div class="success">' + results.join('<br>') + '</div>';
+                } else {
+                    status.innerHTML = '<div class="error">' + results.join('<br>') + '<br><br>Please run "Setup All Fields" again.</div>';
+                }
+
+            } catch (error) {
+                status.innerHTML = '<div class="error">✗ Verification failed: ' + error.message + '</div>';
+            }
+        }
+
+        // Auto-check connection on load
+        window.addEventListener('load', () => {
+            checkSolr();
+        });
+    </script>
+</body>
+</html>

@@ -49,6 +49,8 @@ public class ProductDocument {
 
     private Boolean isActive;
 
+    private String imageUrl;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

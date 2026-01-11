@@ -22,8 +22,8 @@ function ProductSearch() {
   const [filters, setFilters] = useState({
     category: searchParams.get('category') || '',
     subcategory: '',
-    priceRange: { min: 0, max: 10000 },
-    moq: { min: 0, max: 1000 },
+    priceRange: { min: 0, max: 100000 },
+    moq: { min: 0, max: 10000 },
     rating: 0,
     certifications: [],
     location: '',
@@ -50,40 +50,54 @@ function ProductSearch() {
         console.log('Search params:', { keyword, categoryId, filters })
 
         let result
-        if (keyword) {
-          // Search with keyword
-          const params = { keyword }
-          if (categoryId) params.categoryId = categoryId
-          result = await productAPI.search(params)
-        } else if (categoryId) {
-          // Filter by category only
-          result = await productAPI.getByCategory(categoryId)
-        } else if (filters.priceRange.min > 0 || filters.priceRange.max < 10000) {
-          // Filter by price range
-          result = await productAPI.getPriceRange(filters.priceRange.min, filters.priceRange.max)
-        } else {
-          // Get all products
-          result = await productAPI.getAll()
-        }
+        // Always use Solr Search Service for better search capabilities
+        const solrParams = {}
+        if (keyword) solrParams.query = keyword
+        if (categoryId) solrParams.categoryId = categoryId
+        if (filters.priceRange.min > 0) solrParams.minPrice = filters.priceRange.min
+        if (filters.priceRange.max < 100000) solrParams.maxPrice = filters.priceRange.max
+        if (filters.moq.min > 0) solrParams.minMoq = filters.moq.min
+        if (filters.moq.max < 10000) solrParams.maxMoq = filters.moq.max
+        
+        console.log('Calling Solr Search Service with params:', solrParams)
+        result = await productAPI.searchProducts(solrParams)
 
-        console.log('API result:', result)
+        console.log('Solr API result:', result)
 
         if (result.success && result.data) {
-          // Handle both { success, data } and { success, data: { data } } formats
-          const productsData = result.data.data || result.data
-          let mappedProducts = Array.isArray(productsData) ? productsData.map(p => ({
-            id: p.id,
-            name: p.name,
-            price: p.unitPrice || p.price,
-            moq: p.moq || 10,
-            rating: p.averageRating || p.rating || 0,
-            reviews: p.reviewCount || p.reviews || 0,
-            image: p.images?.[0]?.imageUrl || p.imageUrl || '/images/placeholder.jpg',
-            supplier: p.supplierName || 'Supplier',
-            supplierId: p.supplierId,
-            supplierType: (p.supplierType || p.businessType || '').toLowerCase(),
-            location: p.origin || 'N/A'
-          })) : []
+          // Solr Search Service returns { results: [...], totalResults, page, ... }
+          const productsData = result.data.results || result.data.data || result.data || []
+          console.log('Solr products data:', productsData)
+          
+          let mappedProducts = Array.isArray(productsData) ? productsData.map(p => {
+            console.log('Mapping Solr product:', p);
+            
+            // Handle imageUrl - if it's base64 data, ensure it has the proper prefix
+            let imageUrl = p.imageUrl || (p.images && p.images[0] && p.images[0].imageUrl) || '/images/placeholder.jpg';
+            
+            // If it starts with "data:image", it's already a valid data URI
+            // If it's raw base64, add the prefix
+            if (imageUrl && imageUrl.length > 100 && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
+              imageUrl = `data:image/png;base64,${imageUrl}`;
+            }
+            
+            return {
+              id: p.productId || p.id,
+              name: p.name || 'Unknown Product',
+              price: p.price || p.unitPrice || 0,
+              moq: p.moq || 10,
+              rating: p.rating || p.averageRating || 0,
+              reviews: p.reviewCount || p.reviews || 0,
+              image: imageUrl,
+              supplier: p.supplierName || 'Unknown Supplier',
+              supplierId: p.supplierId,
+              supplierType: (p.supplierType || p.businessType || '').toLowerCase() || 'manufacturer',
+              location: p.origin || 'N/A',
+              category: p.categoryName || 'Other'
+            };
+          }) : []
+          
+          console.log('Mapped products from Solr:', mappedProducts)
           
           // If supplier is logged in, show only their products
           if (isSupplier && user?.id) {

@@ -199,6 +199,19 @@ export const productAPI = {
     }
   },
 
+  // Search using Solr (Search Service)
+  searchProducts: async (params) => {
+    try {
+      console.log('Calling search service with params:', params);
+      const response = await searchAPIInstance.post('/search', params);
+      console.log('Search service response:', response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Error searching products via Solr:', error);
+      return { success: false, data: { results: [] } };
+    }
+  },
+
   getPriceRange: async (minPrice, maxPrice) => {
     try {
       const response = await productAPIInstance.get('/products/price-range', {
