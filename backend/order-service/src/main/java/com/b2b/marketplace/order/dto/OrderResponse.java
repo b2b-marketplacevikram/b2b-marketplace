@@ -13,6 +13,8 @@ public class OrderResponse {
     private String status;
     private String paymentStatus;
     private String paymentMethod;
+    private String paymentProofUrl;
+    private String paymentReference;
     private BigDecimal subtotal;
     private BigDecimal taxAmount;
     private BigDecimal shippingCost;
@@ -91,6 +93,22 @@ public class OrderResponse {
 
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
+    }
+
+    public String getPaymentProofUrl() {
+        return paymentProofUrl;
+    }
+
+    public void setPaymentProofUrl(String paymentProofUrl) {
+        this.paymentProofUrl = paymentProofUrl;
+    }
+
+    public String getPaymentReference() {
+        return paymentReference;
+    }
+
+    public void setPaymentReference(String paymentReference) {
+        this.paymentReference = paymentReference;
     }
 
     public BigDecimal getSubtotal() {

@@ -146,7 +146,7 @@ public class Dispute {
     
     // Messages/Communication Thread
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "dispute_id")
+    @JoinColumn(name = "dispute_id", nullable = false)
     @OrderBy("createdAt ASC")
     private List<DisputeMessage> messages = new ArrayList<>();
     

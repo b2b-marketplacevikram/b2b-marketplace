@@ -590,6 +590,8 @@ public class OrderService {
         response.setStatus(order.getStatus().name());
         response.setPaymentStatus(order.getPaymentStatus().name());
         response.setPaymentMethod(order.getPaymentMethod());
+        response.setPaymentProofUrl(order.getPaymentProofUrl());
+        response.setPaymentReference(order.getPaymentReference());
         response.setSubtotal(order.getSubtotal());
         response.setTaxAmount(order.getTaxAmount());
         response.setShippingCost(order.getShippingCost());

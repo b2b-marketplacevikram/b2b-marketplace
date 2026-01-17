@@ -26,6 +26,9 @@ function DisputeDetail() {
   const [showAcceptModal, setShowAcceptModal] = useState(false)
   const [acceptData, setAcceptData] = useState({ rating: 5, feedback: '' })
   const [showRefundModal, setShowRefundModal] = useState(false)
+  const [showSupplierRefundModal, setShowSupplierRefundModal] = useState(false)
+  const [refundProofFile, setRefundProofFile] = useState(null)
+  const [uploadingRefundProof, setUploadingRefundProof] = useState(false)
   const [confirmModal, setConfirmModal] = useState({ show: false, title: '', message: '', onConfirm: null, type: 'info' })
   const [refundTransactionData, setRefundTransactionData] = useState({
     transactionId: '', bankName: '', transactionDate: '', proofUrl: '', notes: ''
@@ -234,6 +237,101 @@ function DisputeDetail() {
     }
   }
 
+  const handleConfirmRefund = async () => {
+    if (!window.confirm('Have you received the refund in your bank account?')) {
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const result = await disputeAPI.confirmRefundReceived(ticketNumber)
+      if (result.success) {
+        fetchDispute()
+        showToast('Refund confirmed successfully. Dispute resolved!', 'success')
+      } else {
+        showToast(result.message || 'Failed to confirm refund', 'error')
+      }
+    } catch (err) {
+      showToast('Error confirming refund', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleRefundProofUpload = async (file) => {
+    if (!file) return null
+
+    try {
+      setUploadingRefundProof(true)
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const uploadResult = await disputeAPI.uploadRefundProof(formData)
+      
+      if (uploadResult.success) {
+        return `http://localhost:8083${uploadResult.url}`
+      } else {
+        showToast(uploadResult.message || 'Failed to upload proof', 'error')
+        return null
+      }
+    } catch (error) {
+      showToast('Error uploading proof', 'error')
+      return null
+    } finally {
+      setUploadingRefundProof(false)
+    }
+  }
+
+  const handleSubmitRefundTransaction = async () => {
+    if (!refundTransactionData.transactionId.trim()) {
+      showToast('Please enter transaction ID', 'error')
+      return
+    }
+
+    if (!refundTransactionData.bankName.trim()) {
+      showToast('Please enter bank name', 'error')
+      return
+    }
+
+    if (!refundProofFile) {
+      showToast('Please upload payment proof', 'error')
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      // Upload proof first
+      const proofUrl = await handleRefundProofUpload(refundProofFile)
+      if (!proofUrl) {
+        setSubmitting(false)
+        return
+      }
+
+      // Submit refund transaction
+      const result = await disputeAPI.submitRefundTransaction(ticketNumber, {
+        ...refundTransactionData,
+        proofUrl: proofUrl,
+        transactionDate: refundTransactionData.transactionDate || new Date().toISOString()
+      })
+
+      if (result.success) {
+        setShowSupplierRefundModal(false)
+        setRefundTransactionData({
+          transactionId: '', bankName: '', transactionDate: '', proofUrl: '', notes: ''
+        })
+        setRefundProofFile(null)
+        fetchDispute()
+        showToast('Refund transaction submitted successfully!', 'success')
+      } else {
+        showToast(result.message || 'Failed to submit refund transaction', 'error')
+      }
+    } catch (err) {
+      showToast('Error submitting refund transaction', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   const resolutionTypes = [
     { value: 'FULL_REFUND', label: 'Full Refund' },
     { value: 'PARTIAL_REFUND', label: 'Partial Refund' },
@@ -355,6 +453,105 @@ function DisputeDetail() {
                     </span>
                   </div>
                 </div>
+
+                {/* Refund Transaction Details - Show payment proof */}
+                {dispute.refundTransaction && (
+                  <div className="refund-transaction" style={{ 
+                    marginTop: '20px', 
+                    padding: '16px', 
+                    background: 'linear-gradient(135deg, #e8f5e9 0%, #ffffff 100%)',
+                    borderRadius: '12px',
+                    borderLeft: '4px solid #43a047'
+                  }}>
+                    <h4 style={{ fontSize: '1rem', margin: '0 0 12px', color: '#1b5e20' }}>
+                      📋 Refund Transaction Details
+                    </h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '12px' }}>
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: '#666', display: 'block', marginBottom: '4px' }}>Transaction ID:</span>
+                        <span style={{ fontWeight: '600', color: '#1a1a2e' }}>{dispute.refundTransaction.transactionId}</span>
+                      </div>
+                      {dispute.refundTransaction.bankName && (
+                        <div>
+                          <span style={{ fontSize: '0.75rem', color: '#666', display: 'block', marginBottom: '4px' }}>Bank:</span>
+                          <span style={{ fontWeight: '600', color: '#1a1a2e' }}>{dispute.refundTransaction.bankName}</span>
+                        </div>
+                      )}
+                      {dispute.refundTransaction.transactionDate && (
+                        <div>
+                          <span style={{ fontSize: '0.75rem', color: '#666', display: 'block', marginBottom: '4px' }}>Date:</span>
+                          <span style={{ fontWeight: '600', color: '#1a1a2e' }}>
+                            {formatDate(dispute.refundTransaction.transactionDate)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Payment Proof Screenshot */}
+                    {dispute.refundTransaction.proofUrl && (
+                      <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '2px solid #e0e0e0' }}>
+                        <h5 style={{ fontSize: '0.9rem', margin: '0 0 10px', color: '#1b5e20' }}>
+                          💳 Payment Proof:
+                        </h5>
+                        <a 
+                          href={dispute.refundTransaction.proofUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'inline-block',
+                            padding: '10px 20px',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            color: 'white',
+                            borderRadius: '8px',
+                            textDecoration: 'none',
+                            fontWeight: '600',
+                            fontSize: '0.9rem',
+                            marginBottom: '10px'
+                          }}
+                        >
+                          📸 View Payment Screenshot
+                        </a>
+                        <div style={{ marginTop: '10px' }}>
+                          <img 
+                            src={dispute.refundTransaction.proofUrl}
+                            alt="Refund Payment Proof"
+                            style={{
+                              maxWidth: '100%',
+                              maxHeight: '400px',
+                              borderRadius: '8px',
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                              cursor: 'pointer'
+                            }}
+                            onClick={() => window.open(dispute.refundTransaction.proofUrl, '_blank')}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {dispute.refundTransaction.notes && (
+                      <div style={{ marginTop: '12px', fontSize: '0.85rem', color: '#666' }}>
+                        <strong>Supplier Notes:</strong> {dispute.refundTransaction.notes}
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {/* Buyer can confirm refund received when status is PROCESSING */}
+                {isBuyer && dispute.refundStatus === 'PROCESSING' && (
+                  <div className="refund-actions" style={{ marginTop: '16px', paddingTop: '16px', borderTop: '2px solid #e9ecef' }}>
+                    <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '12px' }}>
+                      ℹ️ Once you receive the refund in your bank account, please confirm below to close this dispute.
+                    </p>
+                    <button 
+                      className="btn-accept" 
+                      onClick={handleConfirmRefund} 
+                      disabled={submitting}
+                      style={{ width: '100%' }}
+                    >
+                      {submitting ? 'Confirming...' : '✓ I Received the Refund'}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -493,6 +690,14 @@ function DisputeDetail() {
                   {['OPEN', 'ACKNOWLEDGED', 'UNDER_REVIEW', 'ESCALATED'].includes(dispute.status) && (
                     <button className="btn-respond" onClick={() => setShowResolutionForm(true)}>
                       📝 Respond / Propose Resolution
+                    </button>
+                  )}
+                  {dispute.status === 'RESOLVED' && dispute.refundStatus === 'PROCESSING' && !dispute.refundTransaction && (
+                    <button 
+                      className="btn-submit-refund" 
+                      onClick={() => navigate(`/supplier/refund/${ticketNumber}`, { state: { dispute } })}
+                    >
+                      💸 Submit Refund Transaction
                     </button>
                   )}
                 </>
@@ -660,6 +865,95 @@ function DisputeDetail() {
                 disabled={submitting}
               >
                 {submitting ? 'Submitting...' : 'Accept & Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Supplier Refund Transaction Modal */}
+      {showSupplierRefundModal && (
+        <div className="modal-overlay" onClick={() => setShowSupplierRefundModal(false)}>
+          <div className="modal-content refund-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>💸 Submit Refund Transaction</h2>
+              <button className="close-btn" onClick={() => setShowSupplierRefundModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ marginBottom: '20px', color: '#666' }}>
+                Enter the details of the refund transaction you've processed for this dispute.
+              </p>
+
+              <div className="form-group">
+                <label>Transaction ID / Reference Number *</label>
+                <input
+                  type="text"
+                  value={refundTransactionData.transactionId}
+                  onChange={(e) => setRefundTransactionData({ ...refundTransactionData, transactionId: e.target.value })}
+                  placeholder="Enter transaction ID or UTR number"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Bank Name *</label>
+                <input
+                  type="text"
+                  value={refundTransactionData.bankName}
+                  onChange={(e) => setRefundTransactionData({ ...refundTransactionData, bankName: e.target.value })}
+                  placeholder="Enter your bank name"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Transaction Date</label>
+                <input
+                  type="datetime-local"
+                  value={refundTransactionData.transactionDate}
+                  onChange={(e) => setRefundTransactionData({ ...refundTransactionData, transactionDate: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Payment Proof / Screenshot *</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setRefundProofFile(e.target.files[0])}
+                  required
+                />
+                {refundProofFile && (
+                  <div style={{ marginTop: '10px', color: '#16a085' }}>
+                    ✓ Selected: {refundProofFile.name}
+                  </div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>Notes (Optional)</label>
+                <textarea
+                  value={refundTransactionData.notes}
+                  onChange={(e) => setRefundTransactionData({ ...refundTransactionData, notes: e.target.value })}
+                  placeholder="Any additional notes about the refund..."
+                  rows="3"
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn-cancel" 
+                onClick={() => setShowSupplierRefundModal(false)}
+                disabled={submitting || uploadingRefundProof}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn-submit btn-success" 
+                onClick={handleSubmitRefundTransaction}
+                disabled={submitting || uploadingRefundProof}
+              >
+                {submitting ? 'Submitting...' : uploadingRefundProof ? 'Uploading...' : 'Submit Refund'}
               </button>
             </div>
           </div>

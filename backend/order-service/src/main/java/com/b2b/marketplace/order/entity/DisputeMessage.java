@@ -14,7 +14,7 @@ public class DisputeMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "dispute_id")
+    @Column(name = "dispute_id", nullable = false, insertable = false, updatable = false)
     private Long disputeId;
     
     @Column(name = "sender_id")
@@ -161,11 +161,9 @@ public class DisputeMessage {
     
     public enum MessageType {
         TEXT,
-        STATUS_UPDATE,
-        REFUND_UPDATE,
-        ESCALATION,
-        RESOLUTION,
         EVIDENCE,
+        RESOLUTION_OFFER,
+        STATUS_UPDATE,
         SYSTEM
     }
 }

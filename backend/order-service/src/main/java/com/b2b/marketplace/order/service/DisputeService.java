@@ -58,7 +58,12 @@ public class DisputeService {
      */
     @Transactional
     public DisputeResponse createDispute(CreateDisputeRequest request) {
-        log.info("Creating dispute for order: {}", request.getOrderNumber());
+        log.info("Creating dispute for order: {}, buyerId: {}", request.getOrderNumber(), request.getBuyerId());
+        
+        // Validate buyerId is set
+        if (request.getBuyerId() == null) {
+            throw new RuntimeException("Buyer ID is required to create a dispute");
+        }
         
         // Verify order exists
         Order order = orderRepository.findById(request.getOrderId())
@@ -76,7 +81,7 @@ public class DisputeService {
         
         // Set buyer info
         dispute.setBuyerId(request.getBuyerId());
-        dispute.setBuyerName(request.getBuyerName());
+        dispute.setBuyerName(request.getBuyerName() != null ? request.getBuyerName() : "User " + request.getBuyerId());
         dispute.setBuyerEmail(request.getBuyerEmail());
         dispute.setBuyerPhone(request.getBuyerPhone());
         
@@ -135,8 +140,9 @@ public class DisputeService {
                 "this grievance will be acknowledged within 48 hours and resolved within 30 days.");
         dispute.addMessage(systemMessage);
         
+        // Save dispute with all messages - JPA will handle the dispute_id via @JoinColumn
         Dispute savedDispute = disputeRepository.save(dispute);
-        log.info("Dispute created with ticket: {}", savedDispute.getTicketNumber());
+        log.info("Dispute created with ticket: {}, ID: {}", savedDispute.getTicketNumber(), savedDispute.getId());
         
         return mapToResponse(savedDispute, false);
     }
@@ -254,7 +260,7 @@ public class DisputeService {
         msg.setSenderId(supplierId);
         msg.setSenderName(dispute.getSupplierName());
         msg.setSenderType(SenderType.SUPPLIER);
-        msg.setMessageType(proposedResolution != null ? MessageType.RESOLUTION : MessageType.TEXT);
+        msg.setMessageType(proposedResolution != null ? MessageType.RESOLUTION_OFFER : MessageType.TEXT);
         msg.setMessage(message);
         dispute.addMessage(msg);
         
@@ -297,7 +303,7 @@ public class DisputeService {
         DisputeMessage msg = new DisputeMessage();
         msg.setSenderType(SenderType.SYSTEM);
         msg.setSenderName("System");
-        msg.setMessageType(MessageType.RESOLUTION);
+        msg.setMessageType(MessageType.STATUS_UPDATE);
         msg.setMessage("Resolution accepted by buyer. Dispute resolved.");
         dispute.addMessage(msg);
         
@@ -342,7 +348,7 @@ public class DisputeService {
         msg.setSenderId(buyerId);
         msg.setSenderName(dispute.getBuyerName());
         msg.setSenderType(SenderType.BUYER);
-        msg.setMessageType(MessageType.ESCALATION);
+        msg.setMessageType(MessageType.STATUS_UPDATE);
         msg.setMessage("Dispute escalated to " + levelName + ". Reason: " + reason);
         dispute.addMessage(msg);
         
@@ -694,6 +700,10 @@ public class DisputeService {
             throw new RuntimeException("Not authorized to submit refund for this dispute");
         }
 
+        // Fetch the order to get the correct buyer ID
+        Order order = orderRepository.findById(dispute.getOrderId())
+                .orElseThrow(() -> new RuntimeException("Order not found: " + dispute.getOrderId()));
+
         // Create refund transaction record
         RefundTransaction transaction = refundTransactionRepository.findByTicketNumber(ticketNumber)
                 .orElse(new RefundTransaction());
@@ -701,7 +711,7 @@ public class DisputeService {
         transaction.setDisputeId(dispute.getId());
         transaction.setTicketNumber(ticketNumber);
         transaction.setSupplierId(supplierId);
-        transaction.setBuyerId(dispute.getBuyerId());
+        transaction.setBuyerId(order.getBuyerId());
         transaction.setTransactionId(transactionDTO.getTransactionId());
         transaction.setBankName(transactionDTO.getBankName());
         transaction.setTransactionDate(transactionDTO.getTransactionDate() != null ? 
@@ -762,7 +772,7 @@ public class DisputeService {
         msg.setSenderId(buyerId);
         msg.setSenderName(dispute.getBuyerName());
         msg.setSenderType(SenderType.BUYER);
-        msg.setMessageType(MessageType.RESOLUTION);
+        msg.setMessageType(MessageType.STATUS_UPDATE);
         msg.setMessage("Buyer confirmed receipt of refund." + (notes != null ? " Notes: " + notes : ""));
         dispute.addMessage(msg);
 
@@ -770,7 +780,7 @@ public class DisputeService {
         DisputeMessage sysMsg = new DisputeMessage();
         sysMsg.setSenderType(SenderType.SYSTEM);
         sysMsg.setSenderName("System");
-        sysMsg.setMessageType(MessageType.RESOLUTION);
+        sysMsg.setMessageType(MessageType.STATUS_UPDATE);
         sysMsg.setMessage("Refund confirmed by buyer. Dispute resolved successfully.");
         dispute.addMessage(sysMsg);
 

@@ -272,7 +272,7 @@ function SupplierOrderDetail() {
       <div className="order-grid">
         {/* Left Column - Order Info */}
         <div className="order-main">
-          {/* Payment Status Banner */}
+          {/* Payment Status Banner - Supplier View (Read-only) */}
           {order.paymentStatus === 'PAID' ? (
             <div className="payment-banner paid">
               <span className="banner-icon">✓</span>
@@ -281,16 +281,13 @@ function SupplierOrderDetail() {
                 <span>{order.paymentMethod}</span>
               </div>
             </div>
-          ) : order.paymentMethod === 'Bank Transfer' ? (
+          ) : order.paymentStatus === 'PENDING' && order.paymentMethod === 'Bank Transfer' && order.status !== 'CANCELLED' ? (
             <div className="payment-banner pending">
               <span className="banner-icon">⏳</span>
               <div>
-                <strong>Awaiting Payment Confirmation</strong>
-                <span>{order.paymentMethod}</span>
+                <strong>Awaiting Buyer Payment</strong>
+                <span>Waiting for buyer to complete {order.paymentMethod} payment</span>
               </div>
-              <button onClick={() => setShowPaymentConfirmModal(true)} disabled={paymentConfirming} className="confirm-btn">
-                {paymentConfirming ? 'Confirming...' : 'Confirm Payment'}
-              </button>
             </div>
           ) : null}
 

@@ -140,11 +140,23 @@ function PaymentInstructions() {
     try {
       setUploading(true)
       
-      // For now, we'll use a local URL since file upload service may not be available
-      // In production, you would upload to a cloud storage service
-      const paymentProofUrl = `/uploads/payment-proofs/${Date.now()}-${paymentProof.name}`
+      // Step 1: Upload the file
+      const formData = new FormData()
+      formData.append('file', paymentProof)
       
-      // Submit the payment proof
+      const uploadResult = await orderAPI.uploadPaymentProof(formData)
+      
+      if (!uploadResult.success) {
+        setMessage({ 
+          type: 'error', 
+          text: uploadResult.message || 'Failed to upload file. Please try again.' 
+        })
+        return
+      }
+
+      // Step 2: Submit the payment proof with the uploaded file URL
+      const paymentProofUrl = `http://localhost:8083${uploadResult.url}`
+      
       const result = await orderAPI.submitPaymentProof(orderNumber, {
         paymentReference: paymentReference.trim(),
         paymentProofUrl: paymentProofUrl

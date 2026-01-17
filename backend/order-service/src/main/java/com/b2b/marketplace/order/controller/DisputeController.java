@@ -30,7 +30,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/disputes")
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"}, allowCredentials = "true")
-public class DisputeController {
+public class
+DisputeController {
     
     private static final Logger log = LoggerFactory.getLogger(DisputeController.class);
     
@@ -61,7 +62,16 @@ public class DisputeController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             Long userId = Long.parseLong(auth.getName());
+            
+            // Set buyer ID from authenticated user
             request.setBuyerId(userId);
+            
+            // Set default buyer name if not provided
+            if (request.getBuyerName() == null || request.getBuyerName().isEmpty()) {
+                request.setBuyerName("User " + userId);
+            }
+            
+            log.info("Creating dispute for user: {}, order: {}", userId, request.getOrderNumber());
             
             DisputeResponse response = disputeService.createDispute(request);
             return ResponseEntity.ok(Map.of(
@@ -443,22 +453,79 @@ public class DisputeController {
             Long supplierId = getSupplierIdFromUserId(userId);
 
             BuyerBankDetailsDTO bankDetails = disputeService.getBuyerBankDetailsForDispute(ticketNumber, supplierId);
+            Map<String, Object> response = new java.util.HashMap<>();
+            response.put("success", true);
+            response.put("data", bankDetails);
             if (bankDetails == null) {
-                return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", (Object) null,
-                    "message", "Buyer has not submitted bank details yet"
-                ));
+                response.put("message", "Buyer has not submitted bank details yet");
             }
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "data", bankDetails
-            ));
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Failed to get bank details", e);
-            return ResponseEntity.badRequest().body(Map.of(
+            Map<String, Object> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    /**
+     * Upload refund payment proof
+     * POST /api/disputes/upload/refund-proof
+     */
+    @PostMapping("/upload/refund-proof")
+    public ResponseEntity<?> uploadRefundProof(@RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Please select a file to upload"
+                ));
+            }
+
+            // Validate file type (images only)
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Only image files are allowed"
+                ));
+            }
+
+            // Create upload directory if it doesn't exist
+            String paymentProofsDir = "uploads/refund-proofs";
+            java.nio.file.Path uploadPath = java.nio.file.Paths.get(paymentProofsDir);
+            if (!java.nio.file.Files.exists(uploadPath)) {
+                java.nio.file.Files.createDirectories(uploadPath);
+            }
+
+            // Generate unique filename
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String filename = System.currentTimeMillis() + extension;
+            
+            // Save file
+            java.nio.file.Path filePath = uploadPath.resolve(filename);
+            java.nio.file.Files.copy(file.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            // Return the URL
+            String fileUrl = "/uploads/refund-proofs/" + filename;
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "File uploaded successfully",
+                "url", fileUrl,
+                "filename", filename
+            ));
+
+        } catch (Exception e) {
+            log.error("Failed to upload refund proof", e);
+            return ResponseEntity.internalServerError().body(Map.of(
                 "success", false,
-                "message", e.getMessage()
+                "message", "Failed to upload file: " + e.getMessage()
             ));
         }
     }

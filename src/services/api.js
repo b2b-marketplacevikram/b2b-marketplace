@@ -592,6 +592,22 @@ export const orderAPI = {
     }
   },
 
+  uploadPaymentProof: async (formData) => {
+    try {
+      const response = await orderAPIInstance.post('/orders/upload/payment-proof', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return { success: true, ...response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to upload file',
+      };
+    }
+  },
+
   submitPaymentProof: async (orderNumber, proofData) => {
     try {
       const response = await orderAPIInstance.post(`/orders/${orderNumber}/payment-proof`, proofData);
@@ -982,6 +998,38 @@ export const disputeAPI = {
       };
     }
   },
+
+  // Upload refund proof (Supplier)
+  uploadRefundProof: async (formData) => {
+    try {
+      const response = await orderAPIInstance.post('/disputes/upload/refund-proof', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return { success: true, ...response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to upload refund proof',
+      };
+    }
+  },
+
+  // Get buyer bank details for dispute (Supplier)
+  getBuyerBankDetailsForDispute: async (ticketNumber) => {
+    try {
+      const response = await orderAPIInstance.get(`/disputes/${ticketNumber}/bank-details`);
+      return { success: true, data: response.data?.data };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.response?.data?.message || 'Failed to fetch buyer bank details',
+      };
+    }
+  },
+
   // Submit refund transaction (Supplier)
   submitRefundTransaction: async (ticketNumber, transactionData) => {
     try {

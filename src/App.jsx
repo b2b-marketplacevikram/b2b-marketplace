@@ -47,6 +47,7 @@ import PaymentVerification from './pages/supplier/PaymentVerification'
 import BankDetails from './pages/supplier/BankDetails'
 import NotificationSettings from './pages/supplier/NotificationSettings'
 import QuoteManagement from './pages/supplier/QuoteManagement'
+import RefundInstructions from './pages/supplier/RefundInstructions'
 
 // Bundle Pages
 import BundleList from './pages/buyer/BundleList'
@@ -129,6 +130,8 @@ function App() {
                     <Route path="/supplier/quotes" element={<QuoteManagement />} />
                     <Route path="/supplier/quotes/:quoteNumber" element={<QuoteDetail />} />
                     <Route path="/supplier/disputes" element={<DisputeManagement />} />
+                    <Route path="/supplier/disputes/:ticketNumber" element={<DisputeDetail />} />
+                    <Route path="/supplier/refund/:ticketNumber" element={<RefundInstructions />} />
 
                     {/* Admin Routes */}
                     <Route path="/admin" element={<AdminDashboard />} />
