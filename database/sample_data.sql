@@ -2,15 +2,15 @@
 USE b2b_marketplace;
 
 -- Insert Categories
-INSERT INTO categories (name, slug, description, icon, display_order) VALUES
-('Electronics', 'electronics', 'Electronic components and devices', '📱', 1),
-('Machinery', 'machinery', 'Industrial machinery and equipment', '⚙️', 2),
-('Textiles', 'textiles', 'Fabrics and textile products', '👕', 3),
-('Chemicals', 'chemicals', 'Industrial chemicals and raw materials', '🧪', 4),
-('Construction Materials', 'construction-materials', 'Building and construction supplies', '🏗️', 5),
-('Automotive Parts', 'automotive-parts', 'Auto parts and accessories', '🚗', 6),
-('Food & Beverages', 'food-beverages', 'Food products and ingredients', '🍎', 7),
-('Packaging', 'packaging', 'Packaging materials and solutions', '📦', 8);
+INSERT INTO categories (name, slug, description, icon, image_url, display_order) VALUES
+('Electronics', 'electronics', 'Electronic components and devices', '💻', 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=400', 1),
+('Machinery', 'machinery', 'Industrial machinery and equipment', '⚙️', 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400', 2),
+('Textiles', 'textiles', 'Fabrics and textile products', '🧵', 'https://images.unsplash.com/photo-1558769132-cb1aea27c2e2?w=400', 3),
+('Chemicals', 'chemicals', 'Industrial chemicals and raw materials', '🧪', 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=400', 4),
+('Construction Materials', 'construction-materials', 'Building and construction supplies', '🏗️', 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400', 5),
+('Automotive Parts', 'automotive-parts', 'Auto parts and accessories', '🚗', 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400', 6),
+('Food & Beverages', 'food-beverages', 'Food products and ingredients', '🍎', 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400', 7),
+('Packaging', 'packaging', 'Packaging materials and solutions', '📦', 'https://images.unsplash.com/photo-1566576721346-d4a3b4eaeb55?w=400', 8);
 
 -- Insert Certifications
 INSERT INTO certifications (name, description) VALUES
@@ -144,3 +144,48 @@ INSERT INTO payment_transactions (order_id, transaction_id, payment_method, amou
 (2, 'TXN-20240120-045', 'Letter of Credit', 31565.00, 'SUCCESS'),
 (3, 'TXN-20240122-089', 'PayPal', 4832.50, 'SUCCESS'),
 (5, 'TXN-20240125-123', 'Credit Card', 3608.00, 'SUCCESS');
+
+-- ====================================================================
+-- CLASSIFICATION SYSTEM SAMPLE DATA
+-- ====================================================================
+
+-- Insert default Classification Classes
+INSERT INTO classification_classes (name, display_name, description, display_order) VALUES
+('AdditionalDetails', 'Additional Details', 'General product information', 1),
+('Memory', 'Memory & Storage', 'Memory and storage specifications', 2),
+('Display', 'Display', 'Screen and display specifications', 3),
+('Camera', 'Camera', 'Camera specifications', 4);
+
+-- Additional Details Attributes
+INSERT INTO classification_attributes (class_id, name, display_name, data_type, unit, is_required, display_order) VALUES
+((SELECT id FROM classification_classes WHERE name = 'AdditionalDetails'), 'operating_system', 'Operating System', 'TEXT', NULL, TRUE, 1),
+((SELECT id FROM classification_classes WHERE name = 'AdditionalDetails'), 'processor_speed', 'Processor Speed', 'TEXT', 'GHz', FALSE, 2),
+((SELECT id FROM classification_classes WHERE name = 'AdditionalDetails'), 'form_factor', 'Form Factor', 'TEXT', NULL, FALSE, 3),
+((SELECT id FROM classification_classes WHERE name = 'AdditionalDetails'), 'color', 'Colour', 'TEXT', NULL, FALSE, 4),
+((SELECT id FROM classification_classes WHERE name = 'AdditionalDetails'), 'sim_card_slot', 'SIM Card Slot Count', 'TEXT', NULL, FALSE, 5),
+((SELECT id FROM classification_classes WHERE name = 'AdditionalDetails'), 'connector_type', 'Connector Type', 'TEXT', NULL, FALSE, 6),
+((SELECT id FROM classification_classes WHERE name = 'AdditionalDetails'), 'biometric_security', 'Biometric Security Feature', 'TEXT', NULL, FALSE, 7),
+((SELECT id FROM classification_classes WHERE name = 'AdditionalDetails'), 'human_interface', 'Human Interface Types', 'TEXT', NULL, FALSE, 8),
+((SELECT id FROM classification_classes WHERE name = 'AdditionalDetails'), 'sim_card_size', 'Sim Card Size', 'TEXT', NULL, FALSE, 9);
+
+-- Memory Attributes
+INSERT INTO classification_attributes (class_id, name, display_name, data_type, unit, is_required, display_order) VALUES
+((SELECT id FROM classification_classes WHERE name = 'Memory'), 'ram', 'RAM Memory Installed', 'TEXT', 'GB', TRUE, 1),
+((SELECT id FROM classification_classes WHERE name = 'Memory'), 'storage_capacity', 'Memory Storage Capacity', 'TEXT', 'GB', TRUE, 2),
+((SELECT id FROM classification_classes WHERE name = 'Memory'), 'storage_type', 'Storage Type', 'TEXT', NULL, FALSE, 3),
+((SELECT id FROM classification_classes WHERE name = 'Memory'), 'expandable_storage', 'Expandable Storage', 'TEXT', 'GB', FALSE, 4);
+
+-- Display Attributes
+INSERT INTO classification_attributes (class_id, name, display_name, data_type, unit, is_required, display_order) VALUES
+((SELECT id FROM classification_classes WHERE name = 'Display'), 'screen_size', 'Screen Size', 'TEXT', 'inches', TRUE, 1),
+((SELECT id FROM classification_classes WHERE name = 'Display'), 'resolution', 'Resolution', 'TEXT', 'pixels', TRUE, 2),
+((SELECT id FROM classification_classes WHERE name = 'Display'), 'refresh_rate', 'Refresh Rate', 'TEXT', 'Hz', FALSE, 3),
+((SELECT id FROM classification_classes WHERE name = 'Display'), 'display_type', 'Display Type', 'TEXT', NULL, FALSE, 4),
+((SELECT id FROM classification_classes WHERE name = 'Display'), 'touch_screen', 'Touch Screen', 'TEXT', NULL, FALSE, 5);
+
+-- Camera Attributes  
+INSERT INTO classification_attributes (class_id, name, display_name, data_type, unit, is_required, display_order) VALUES
+((SELECT id FROM classification_classes WHERE name = 'Camera'), 'rear_camera', 'Rear Facing Camera Photo Sensor Resolution', 'TEXT', 'MP', TRUE, 1),
+((SELECT id FROM classification_classes WHERE name = 'Camera'), 'front_camera', 'Front Photo Sensor Resolution', 'TEXT', 'MP', TRUE, 2),
+((SELECT id FROM classification_classes WHERE name = 'Camera'), 'camera_description', 'Camera Description', 'TEXT', NULL, FALSE, 3),
+((SELECT id FROM classification_classes WHERE name = 'Camera'), 'video_capture_resolution', 'Video Capture Resolution', 'TEXT', NULL, FALSE, 4);

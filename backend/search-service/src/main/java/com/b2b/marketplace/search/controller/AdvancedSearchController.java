@@ -18,7 +18,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/search/advanced")
 @Slf4j
-@CrossOrigin(origins = "*")
 public class AdvancedSearchController {
 
     private final AdvancedSolrSearchService advancedSolrSearchService;

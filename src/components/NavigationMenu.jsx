@@ -78,8 +78,13 @@ function NavigationMenu() {
             onMouseLeave={handleCategoryLeave}
           >
             <Link 
-              to={`/search?category=${category.id}`}
+              to={category.subcategories && category.subcategories.length > 0 ? '#' : `/category-products/${category.id}`}
               className="nav-link"
+              onClick={(e) => {
+                if (category.subcategories && category.subcategories.length > 0) {
+                  e.preventDefault()
+                }
+              }}
             >
               {category.name}
             </Link>
@@ -97,7 +102,9 @@ function NavigationMenu() {
                     {category.subcategories.map(subcat => (
                       <Link
                         key={subcat.id}
-                        to={`/search?category=${subcat.id}`}
+                        to={subcat.subcategories && subcat.subcategories.length > 0 
+                          ? `/category-products/${subcat.id}` 
+                          : `/category-products/${subcat.id}`}
                         className="mega-menu-link"
                       >
                         {subcat.name}
@@ -105,7 +112,7 @@ function NavigationMenu() {
                     ))}
                   </div>
                   <Link
-                    to={`/search?category=${category.id}`}
+                    to={`/category-products/${category.id}`}
                     className="mega-menu-view-all"
                   >
                     View All {category.name} →

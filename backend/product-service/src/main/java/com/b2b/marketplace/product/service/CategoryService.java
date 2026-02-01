@@ -66,6 +66,7 @@ public class CategoryService {
         category.setIsActive(request.getIsActive());
         category.setDisplayOrder(request.getDisplayOrder());
         category.setIcon(request.getIcon());
+        category.setImageUrl(request.getImageUrl());
 
         Category savedCategory = categoryRepository.save(category);
         return mapToResponse(savedCategory);
@@ -88,6 +89,7 @@ public class CategoryService {
         category.setIsActive(request.getIsActive());
         category.setDisplayOrder(request.getDisplayOrder());
         category.setIcon(request.getIcon());
+        category.setImageUrl(request.getImageUrl());
 
         Category updatedCategory = categoryRepository.save(category);
         return mapToResponse(updatedCategory);
@@ -111,6 +113,7 @@ public class CategoryService {
         response.setIsActive(category.getIsActive());
         response.setDisplayOrder(category.getDisplayOrder());
         response.setIcon(category.getIcon());
+        response.setImageUrl(category.getImageUrl());
         response.setCreatedAt(category.getCreatedAt());
         response.setUpdatedAt(category.getUpdatedAt());
         return response;

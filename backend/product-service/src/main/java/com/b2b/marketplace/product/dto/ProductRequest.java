@@ -20,6 +20,9 @@ public class ProductRequest {
     private String brand;
     private String model;
     private String specifications;
+    private List<SpecificationDTO> specificationsList; // Dynamic specifications (legacy)
+    private List<Long> classificationIds; // Classification classes assigned to product
+    private List<ProductAttributeValueDTO> attributeValues; // Attribute values entered by supplier
     private Boolean isActive = true;
     private Boolean isFeatured = false;
     private List<String> imageUrls;

@@ -327,3 +327,103 @@
 .form-group.full-width {
   grid-column: 1 / -1;
 }
+
+/* Classification-based Specifications Styles */
+.classifications-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.classification-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  background: #f9f9f9;
+}
+
+.classification-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.classification-header input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.classification-name {
+  color: #333;
+  font-size: 16px;
+}
+
+.classification-count {
+  color: #666;
+  font-size: 14px;
+  font-weight: normal;
+}
+
+.attributes-list {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.attribute-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.attribute-field label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 0;
+}
+
+.attribute-field .required-mark {
+  color: #ff4d4d;
+  margin-left: 2px;
+}
+
+.attribute-field .attribute-unit {
+  color: #888;
+  font-weight: normal;
+  font-size: 13px;
+  margin-left: 4px;
+}
+
+.attribute-field input {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.attribute-field input:focus {
+  border-color: #ff6b35;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.1);
+}
+
+.attribute-field .help-text {
+  color: #888;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.form-help-text {
+  color: #666;
+  font-size: 14px;
+  margin: 8px 0 0 0;
+}

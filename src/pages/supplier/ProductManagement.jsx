@@ -34,14 +34,35 @@ function ProductManagement() {
     moq: '',
     stockQuantity: '',
     description: '',
-    specifications: '',
     brand: '',
     model: '',
     origin: '',
     unit: 'piece',
     leadTimeDays: '',
-    imageUrls: []
+    imageUrls: [],
+    classificationIds: [],
+    attributeValues: []
   })
+  
+  // Classification states
+  const [classifications, setClassifications] = useState([])
+  const [selectedClassifications, setSelectedClassifications] = useState([])
+
+  // Fetch classifications
+  useEffect(() => {
+    const fetchClassifications = async () => {
+      try {
+        const response = await fetch('http://localhost:8082/api/classifications')
+        if (response.ok) {
+          const data = await response.json()
+          setClassifications(data)
+        }
+      } catch (error) {
+        console.error('Error fetching classifications:', error)
+      }
+    }
+    fetchClassifications()
+  }, [])
 
   // Fetch categories
   useEffect(() => {
@@ -188,11 +209,16 @@ function ProductManagement() {
       origin: formData.origin,
       brand: formData.brand,
       model: formData.model,
-      specifications: formData.specifications,
       isActive: true,
       isFeatured: false,
-      imageUrls: formData.imageUrls.filter(url => url.trim())
+      imageUrls: formData.imageUrls.filter(url => url.trim()),
+      classificationIds: selectedClassifications.map(c => c.id),
+      attributeValues: formData.attributeValues
     }
+    
+    console.log('🔍 SUBMITTING PRODUCT DATA:', JSON.stringify(productData, null, 2))
+    console.log('📋 Selected Classifications:', selectedClassifications)
+    console.log('📝 Attribute Values:', formData.attributeValues)
 
     if (editingProduct) {
       // Update existing product
@@ -252,17 +278,19 @@ function ProductManagement() {
       moq: '',
       stockQuantity: '',
       description: '',
-      specifications: '',
       brand: '',
       model: '',
       origin: '',
       unit: 'piece',
       leadTimeDays: '',
-      imageUrls: []
+      imageUrls: [],
+      classificationIds: [],
+      attributeValues: []
     })
     setSelectedParentId('')
     setShowNewSubcategoryInput(false)
     setNewSubcategoryName('')
+    setSelectedClassifications([])
     setEditingProduct(null)
     setShowForm(false)
   }
@@ -289,6 +317,25 @@ function ProductManagement() {
       
       setSelectedParentId(parentId)
       setEditingProduct(product)
+      
+      // Load product classifications if any
+      if (p.classifications && p.classifications.length > 0) {
+        setSelectedClassifications(p.classifications)
+        // Pre-fill attribute values
+        const attributeValues = []
+        p.classifications.forEach(classification => {
+          classification.attributes.forEach(attr => {
+            if (attr.value) {
+              attributeValues.push({
+                attributeId: attr.id,
+                attributeValue: attr.value
+              })
+            }
+          })
+        })
+        setFormData(prev => ({ ...prev, attributeValues }))
+      }
+      
       setFormData({
         name: p.name,
         categoryId: p.categoryId?.toString() || '',
@@ -296,13 +343,19 @@ function ProductManagement() {
         moq: p.moq,
         stockQuantity: p.stockQuantity,
         description: p.description || '',
-        specifications: p.specifications || '',
         brand: p.brand || '',
         model: p.model || '',
         origin: p.origin || '',
         unit: p.unit || 'piece',
         leadTimeDays: p.leadTimeDays || '',
-        imageUrls: p.images?.map(img => img.imageUrl) || []
+        imageUrls: p.images?.map(img => img.imageUrl) || [],
+        classificationIds: p.classifications?.map(c => c.id) || [],
+        attributeValues: p.classifications?.flatMap(c => 
+          c.attributes.filter(a => a.value).map(a => ({
+            attributeId: a.id,
+            attributeValue: a.value
+          }))
+        ) || []
       })
       setShowForm(true)
     }
@@ -496,15 +549,87 @@ function ProductManagement() {
               ></textarea>
             </div>
 
+            {/* Classification-based Specifications */}
             <div className="form-group">
-              <label>Specifications</label>
-              <textarea
-                name="specifications"
-                value={formData.specifications}
-                onChange={handleInputChange}
-                rows="4"
-                placeholder="Enter product specifications (one per line)..."
-              ></textarea>
+              <label>Product Specifications</label>
+              <p className="form-help-text">Select classification categories and enter values for product attributes</p>
+              
+              {/* Classification Selection */}
+              <div className="classifications-container">
+                {classifications.map(classification => {
+                  const isSelected = selectedClassifications.some(c => c.id === classification.id)
+                  return (
+                    <div key={classification.id} className="classification-card">
+                      <label className="classification-header">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedClassifications([...selectedClassifications, classification])
+                            } else {
+                              setSelectedClassifications(selectedClassifications.filter(c => c.id !== classification.id))
+                              // Remove all attribute values for this classification
+                              setFormData(prev => ({
+                                ...prev,
+                                attributeValues: prev.attributeValues.filter(av => 
+                                  !classification.attributes.some(attr => attr.id === av.attributeId)
+                                )
+                              }))
+                            }
+                          }}
+                        />
+                        <span className="classification-name">{classification.displayName}</span>
+                        <span className="classification-count">({classification.attributes.length} attributes)</span>
+                      </label>
+                      
+                      {isSelected && (
+                        <div className="attributes-list">
+                          {classification.attributes.map(attribute => (
+                            <div key={attribute.id} className="attribute-field">
+                              <label>
+                                {attribute.displayName}
+                                {attribute.isRequired && <span className="required-mark">*</span>}
+                                {attribute.unit && <span className="attribute-unit">({attribute.unit})</span>}
+                              </label>
+                              <input
+                                type="text"
+                                value={formData.attributeValues.find(av => av.attributeId === attribute.id)?.attributeValue || ''}
+                                onChange={(e) => {
+                                  const existingIndex = formData.attributeValues.findIndex(av => av.attributeId === attribute.id)
+                                  const newAttributeValues = [...formData.attributeValues]
+                                  
+                                  if (existingIndex >= 0) {
+                                    newAttributeValues[existingIndex] = {
+                                      attributeId: attribute.id,
+                                      attributeValue: e.target.value
+                                    }
+                                  } else {
+                                    newAttributeValues.push({
+                                      attributeId: attribute.id,
+                                      attributeValue: e.target.value
+                                    })
+                                  }
+                                  
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    attributeValues: newAttributeValues
+                                  }))
+                                }}
+                                placeholder={`Enter ${attribute.displayName.toLowerCase()}`}
+                                required={attribute.isRequired}
+                              />
+                              {attribute.helpText && (
+                                <small className="help-text">{attribute.helpText}</small>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
 
             <div className="form-group">

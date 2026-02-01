@@ -25,14 +25,18 @@ import java.util.stream.Collectors;
 public class ProductSearchRepository {
 
     private final SolrClient solrClient;
-    private static final String COLLECTION = "products";
+    
+    @org.springframework.beans.factory.annotation.Value("${spring.data.solr.collection:b2b_products}")
+    private String collectionName;
+    
+    private static final String COLLECTION = "products"; // Deprecated - use collectionName instead
 
     public List<ProductDocument> findByNameContaining(String name) {
         try {
             SolrQuery query = new SolrQuery("name:*" + name + "*");
             query.addFilterQuery("isActive:true");
             query.setRows(100);
-            QueryResponse response = solrClient.query(COLLECTION, query);
+            QueryResponse response = solrClient.query(collectionName, query);
             return mapResults(response);
         } catch (Exception e) {
             log.error("Error finding by name: {}", e.getMessage());
@@ -45,7 +49,7 @@ public class ProductSearchRepository {
             SolrQuery query = new SolrQuery("categoryId:" + categoryId);
             query.addFilterQuery("isActive:true");
             query.setRows(100);
-            QueryResponse response = solrClient.query(COLLECTION, query);
+            QueryResponse response = solrClient.query(collectionName, query);
             return mapResults(response);
         } catch (Exception e) {
             log.error("Error finding by category: {}", e.getMessage());
@@ -58,7 +62,7 @@ public class ProductSearchRepository {
             SolrQuery query = new SolrQuery("supplierId:" + supplierId);
             query.addFilterQuery("isActive:true");
             query.setRows(100);
-            QueryResponse response = solrClient.query(COLLECTION, query);
+            QueryResponse response = solrClient.query(collectionName, query);
             return mapResults(response);
         } catch (Exception e) {
             log.error("Error finding by supplier: {}", e.getMessage());
@@ -71,7 +75,7 @@ public class ProductSearchRepository {
             SolrQuery query = new SolrQuery("isFeatured:true");
             query.addFilterQuery("isActive:true");
             query.setRows(100);
-            QueryResponse response = solrClient.query(COLLECTION, query);
+            QueryResponse response = solrClient.query(collectionName, query);
             return mapResults(response);
         } catch (Exception e) {
             log.error("Error finding featured: {}", e.getMessage());
@@ -84,7 +88,7 @@ public class ProductSearchRepository {
             SolrQuery query = new SolrQuery("price:[" + minPrice + " TO " + maxPrice + "]");
             query.addFilterQuery("isActive:true");
             query.setRows(100);
-            QueryResponse response = solrClient.query(COLLECTION, query);
+            QueryResponse response = solrClient.query(collectionName, query);
             return mapResults(response);
         } catch (Exception e) {
             log.error("Error finding by price range: {}", e.getMessage());
@@ -96,7 +100,7 @@ public class ProductSearchRepository {
         try {
             SolrQuery query = new SolrQuery("id:" + id);
             query.setRows(1);
-            QueryResponse response = solrClient.query(COLLECTION, query);
+            QueryResponse response = solrClient.query(collectionName, query);
             List<ProductDocument> results = mapResults(response);
             return results.isEmpty() ? Optional.empty() : Optional.of(results.get(0));
         } catch (Exception e) {
@@ -110,7 +114,7 @@ public class ProductSearchRepository {
             SolrQuery query = new SolrQuery("*:*");
             query.addFilterQuery("isActive:true");
             query.setRows(1000);
-            QueryResponse response = solrClient.query(COLLECTION, query);
+            QueryResponse response = solrClient.query(collectionName, query);
             return mapResults(response);
         } catch (Exception e) {
             log.error("Error finding all: {}", e.getMessage());
@@ -122,7 +126,7 @@ public class ProductSearchRepository {
         try {
             SolrQuery query = new SolrQuery("*:*");
             query.setRows(0);
-            QueryResponse response = solrClient.query(COLLECTION, query);
+            QueryResponse response = solrClient.query(collectionName, query);
             return response.getResults().getNumFound();
         } catch (Exception e) {
             log.error("Error counting: {}", e.getMessage());

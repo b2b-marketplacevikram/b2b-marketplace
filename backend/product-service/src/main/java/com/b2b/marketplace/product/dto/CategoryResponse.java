@@ -14,6 +14,7 @@ public class CategoryResponse {
     private Boolean isActive;
     private Integer displayOrder;
     private String icon;
+    private String imageUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

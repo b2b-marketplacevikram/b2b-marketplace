@@ -22,6 +22,9 @@ import java.util.stream.Collectors;
 public class SolrSearchService {
 
     private final SolrClient solrClient;
+    
+    @org.springframework.beans.factory.annotation.Value("${spring.data.solr.collection:b2b_products}")
+    private String collectionName;
 
     public com.b2b.marketplace.search.dto.SearchResponse search(
             com.b2b.marketplace.search.dto.SearchRequest searchRequest) {
@@ -33,7 +36,7 @@ public class SolrSearchService {
             query.setStart(searchRequest.getPage() * searchRequest.getSize());
             query.setRows(searchRequest.getSize());
 
-            QueryResponse resp = solrClient.query("products", query);
+            QueryResponse resp = solrClient.query(collectionName, query);
             List<ProductDocument> docs = resp.getResults().stream()
                     .map(d -> {
                         ProductDocument pd = new ProductDocument();
@@ -173,8 +176,8 @@ public class SolrSearchService {
             doc.addField("isActive", product.getIsActive());
             doc.addField("imageUrl", product.getImageUrl());
 
-            solrClient.add("products", doc);
-            solrClient.commit("products");
+            solrClient.add(collectionName, doc);
+            solrClient.commit(collectionName);
             log.info("Indexed product: {}", product.getProductId());
         } catch (Exception e) {
             log.error("Error indexing product {}: {}", product.getProductId(), e.getMessage());
@@ -183,8 +186,8 @@ public class SolrSearchService {
 
     public void deleteProduct(String id) {
         try {
-            solrClient.deleteById("products", id);
-            solrClient.commit("products");
+            solrClient.deleteById(collectionName, id);
+            solrClient.commit(collectionName);
             log.info("Deleted product from index: {}", id);
         } catch (Exception e) {
             log.error("Error deleting product {}: {}", id, e.getMessage());

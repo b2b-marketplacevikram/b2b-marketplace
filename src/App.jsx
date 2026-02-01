@@ -1,9 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { HelmetProvider } from 'react-helmet-async'
 import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import { CartProvider } from './context/CartContext'
 import { NotificationProvider } from './context/NotificationContext'
-import { MessagingProvider } from './context/MessagingContext'
+import { MessagingProvider } from './context/MessagingProvider'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import ToastNotification from './components/ToastNotification'
@@ -13,6 +14,7 @@ import CookieConsent from './components/CookieConsent'
 import Home from './pages/buyer/Home'
 import ProductSearch from './pages/buyer/ProductSearch'
 import ProductDetails from './pages/buyer/ProductDetails'
+import CategoryProducts from './pages/buyer/CategoryProducts'
 import SupplierProfile from './pages/buyer/SupplierProfile'
 import Cart from './pages/buyer/Cart'
 import Checkout from './pages/buyer/Checkout'
@@ -73,21 +75,23 @@ function App() {
   console.log('App component rendering...')
   
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <CartProvider>
-          <NotificationProvider>
-            <MessagingProvider>
-              <Router>
-                <div className="app">
-                  <Header />
-                  <ToastNotification />
-                  <main className="main-content">
-                    <Routes>
-                      {/* Buyer Routes */}
-                      <Route path="/" element={<Home />} />
+    <HelmetProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <CartProvider>
+            <NotificationProvider>
+              <MessagingProvider>
+                <Router>
+                  <div className="app">
+                    <Header />
+                    <ToastNotification />
+                    <main className="main-content">
+                      <Routes>
+                        {/* Buyer Routes */}
+                        <Route path="/" element={<Home />} />
                       <Route path="/search" element={<ProductSearch />} />
                       <Route path="/product/:id" element={<ProductDetails />} />
+                      <Route path="/category-products/:categoryId" element={<CategoryProducts />} />
                       <Route path="/supplier/:id" element={<SupplierProfile />} />
                       <Route path="/cart" element={<Cart />} />
                       <Route path="/checkout" element={<Checkout />} />
@@ -160,6 +164,7 @@ function App() {
       </CartProvider>
     </ToastProvider>
   </AuthProvider>
+  </HelmetProvider>
   )
 }
 

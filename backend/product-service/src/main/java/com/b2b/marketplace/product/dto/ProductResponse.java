@@ -26,6 +26,8 @@ public class ProductResponse {
     private String brand;
     private String model;
     private String specifications;
+    private List<SpecificationDTO> specificationsList; // Dynamic specifications grouped by category (legacy)
+    private List<ClassificationClassDTO> classifications; // Classification-based specifications
     private Boolean isActive;
     private Boolean isFeatured;
     private BigDecimal averageRating;

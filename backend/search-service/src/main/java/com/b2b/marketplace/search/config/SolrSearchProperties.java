@@ -15,7 +15,7 @@ public class SolrSearchProperties {
     @Value("${spring.data.solr.host:http://localhost:8983/solr}")
     private String solrHost;
 
-    @Value("${spring.data.solr.collection:products}")
+    @Value("${spring.data.solr.collection:b2b_products}")
     private String collection;
 
     @Value("${spring.data.solr.connection-timeout:5000}")

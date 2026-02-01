@@ -203,7 +203,25 @@ export const productAPI = {
   searchProducts: async (params) => {
     try {
       console.log('Calling search service with params:', params);
-      const response = await searchAPIInstance.post('/search', params);
+      // Convert 'query' param to 'q' for GET request compatibility
+      const queryParams = {
+        q: params.query,
+        categoryId: params.categoryId,
+        supplierId: params.supplierId,
+        minPrice: params.minPrice,
+        maxPrice: params.maxPrice,
+        minMoq: params.minMoq,
+        maxMoq: params.maxMoq,
+        minRating: params.minRating,
+        page: params.page || 0,
+        size: params.size || 20
+      };
+      // Remove undefined values
+      Object.keys(queryParams).forEach(key => 
+        queryParams[key] === undefined && delete queryParams[key]
+      );
+      console.log('Converted query params:', queryParams);
+      const response = await searchAPIInstance.get('/search', { params: queryParams });
       console.log('Search service response:', response.data);
       return { success: true, data: response.data };
     } catch (error) {

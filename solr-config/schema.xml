@@ -121,6 +121,9 @@
     <field name="isFeatured" type="boolean" indexed="true" stored="true"/>
     <field name="isActive" type="boolean" indexed="true" stored="true"/>
     
+    <!-- Images -->
+    <field name="imageUrl" type="string" indexed="false" stored="true" docValues="false"/>
+    
     <!-- Timestamps -->
     <field name="createdAt" type="pdate" indexed="true" stored="true"/>
     <field name="updatedAt" type="pdate" indexed="true" stored="true"/>

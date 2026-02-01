@@ -11,6 +11,8 @@ import com.b2b.marketplace.product.repository.ProductRepository;
 import com.b2b.marketplace.product.repository.SupplierRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +22,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class ProductService {
 
@@ -28,6 +29,23 @@ public class ProductService {
     private final ProductImageRepository productImageRepository;
     private final CategoryRepository categoryRepository;
     private final SupplierRepository supplierRepository;
+    
+    private final ClassificationService classificationService;
+    
+    // Constructor with @Lazy to break circular dependency
+    public ProductService(
+        ProductRepository productRepository,
+        ProductImageRepository productImageRepository,
+        CategoryRepository categoryRepository,
+        SupplierRepository supplierRepository,
+        @Lazy ClassificationService classificationService
+    ) {
+        this.productRepository = productRepository;
+        this.productImageRepository = productImageRepository;
+        this.categoryRepository = categoryRepository;
+        this.supplierRepository = supplierRepository;
+        this.classificationService = classificationService;
+    }
 
     @Transactional(readOnly = true)
     public List<ProductResponse> getAllProducts() {
@@ -162,6 +180,22 @@ public class ProductService {
 
         Product savedProduct = productRepository.save(product);
 
+        // Save classification-based attributes
+        log.info("🔍 Classification IDs: {}", request.getClassificationIds());
+        log.info("📝 Attribute Values: {}", request.getAttributeValues());
+        
+        if (request.getClassificationIds() != null && request.getAttributeValues() != null) {
+            log.info("✅ Saving classifications for product ID: {}", savedProduct.getId());
+            classificationService.saveProductClassifications(
+                savedProduct.getId(), 
+                request.getClassificationIds(), 
+                request.getAttributeValues()
+            );
+        } else {
+            log.warn("⚠️ No classifications to save - classificationIds: {}, attributeValues: {}", 
+                request.getClassificationIds(), request.getAttributeValues());
+        }
+
         // Save product images
         if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
             for (int i = 0; i < request.getImageUrls().size(); i++) {
@@ -206,6 +240,22 @@ public class ProductService {
             }
         } else {
             product.setSpecifications(null);
+        }
+        
+        // Save classification-based attributes
+        log.info("🔍 UPDATE - Classification IDs: {}", request.getClassificationIds());
+        log.info("📝 UPDATE - Attribute Values: {}", request.getAttributeValues());
+        
+        if (request.getClassificationIds() != null && request.getAttributeValues() != null) {
+            log.info("✅ Updating classifications for product ID: {}", id);
+            classificationService.saveProductClassifications(
+                id, 
+                request.getClassificationIds(), 
+                request.getAttributeValues()
+            );
+        } else {
+            log.warn("⚠️ UPDATE - No classifications to save - classificationIds: {}, attributeValues: {}", 
+                request.getClassificationIds(), request.getAttributeValues());
         }
         
         product.setIsActive(request.getIsActive());
@@ -259,13 +309,13 @@ public class ProductService {
         response.setReviewCount(product.getReviewCount());
         response.setCreatedAt(product.getCreatedAt());
         response.setUpdatedAt(product.getUpdatedAt());
-
+        
         // Get category name
         if (product.getCategoryId() != null) {
             categoryRepository.findById(product.getCategoryId())
                     .ifPresent(category -> response.setCategoryName(category.getName()));
         }
-
+        
         // Get supplier details (company name, type and user ID for messaging)
         if (product.getSupplierId() != null) {
             supplierRepository.findById(product.getSupplierId())
@@ -274,6 +324,12 @@ public class ProductService {
                         response.setSupplierName(supplier.getCompanyName());
                         response.setSupplierType(supplier.getBusinessType());
                     });
+        }
+        
+        // Get classification-based specifications
+        if (classificationService != null) {
+            List<ClassificationClassDTO> classifications = classificationService.getProductClassifications(product.getId());
+            response.setClassifications(classifications);
         }
 
         // Get images

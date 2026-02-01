@@ -27,7 +27,11 @@ import java.util.stream.Collectors;
 public class BundleSolrSearchService {
 
     private final SolrClient solrClient;
-    private static final String COLLECTION = "products"; // Using same collection with docType filter
+    
+    @org.springframework.beans.factory.annotation.Value("${spring.data.solr.collection:b2b_products}")
+    private String collectionName;
+    
+    private static final String COLLECTION = "products"; // Deprecated - use collectionName instead
 
     /**
      * Search for bundles in Solr
@@ -40,7 +44,7 @@ public class BundleSolrSearchService {
             query.setStart(searchRequest.getPage() * searchRequest.getSize());
             query.setRows(searchRequest.getSize());
 
-            QueryResponse response = solrClient.query(COLLECTION, query);
+            QueryResponse response = solrClient.query(collectionName, query);
             List<BundleDocument> docs = response.getResults().stream()
                     .map(this::mapToBundleDocument)
                     .collect(Collectors.toList());
@@ -247,8 +251,8 @@ public class BundleSolrSearchService {
             doc.addField("createdAt", bundle.getCreatedAt());
             doc.addField("updatedAt", bundle.getUpdatedAt());
 
-            solrClient.add(COLLECTION, doc);
-            solrClient.commit(COLLECTION);
+            solrClient.add(collectionName, doc);
+            solrClient.commit(collectionName);
             log.info("Indexed bundle: {}", bundle.getBundleId());
         } catch (Exception e) {
             log.error("Error indexing bundle {}: {}", bundle.getBundleId(), e.getMessage());
@@ -260,8 +264,8 @@ public class BundleSolrSearchService {
      */
     public void deleteBundle(Long bundleId) {
         try {
-            solrClient.deleteById(COLLECTION, "bundle_" + bundleId);
-            solrClient.commit(COLLECTION);
+            solrClient.deleteById(collectionName, "bundle_" + bundleId);
+            solrClient.commit(collectionName);
             log.info("Deleted bundle from index: {}", bundleId);
         } catch (Exception e) {
             log.error("Error deleting bundle {}: {}", bundleId, e.getMessage());

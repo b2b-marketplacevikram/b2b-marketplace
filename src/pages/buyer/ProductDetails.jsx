@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
 import { useMessaging } from '../../context/MessagingContext'
@@ -20,11 +21,119 @@ function ProductDetails() {
   const [activeTab, setActiveTab] = useState('description')
   const [toast, setToast] = useState({ show: false, type: '', message: '', icon: '' })
   const [showQuoteModal, setShowQuoteModal] = useState(false)
+  const [expandedCategories, setExpandedCategories] = useState({})
+
+  // Generate SEO-friendly meta data
+  const generateSEOData = () => {
+    if (!product) return null
+
+    const siteUrl = window.location.origin
+    const productUrl = `${siteUrl}/product/${product.id}`
+    const imageUrl = product.images[0] || `${siteUrl}/default-product.jpg`
+    
+    // Generate description from product details
+    const metaDescription = product.description?.substring(0, 155) || 
+      `Buy ${product.name} at ₹${product.price?.toLocaleString('en-IN')} per unit. MOQ: ${product.moq} units. ${product.supplier.verified ? 'Verified Supplier' : 'Quality Supplier'} - ${product.supplier.name}.`
+    
+    // Generate keywords
+    const keywords = [
+      product.name,
+      product.supplier.name,
+      product.supplier.type,
+      'B2B',
+      'wholesale',
+      'bulk order',
+      'manufacturer',
+      product.specifications?.Brand,
+      product.specifications?.Origin
+    ].filter(Boolean).join(', ')
+
+    // Generate structured data (Schema.org JSON-LD)
+    const structuredData = {
+      '@context': 'https://schema.org/',
+      '@type': 'Product',
+      'name': product.name,
+      'image': product.images,
+      'description': product.description,
+      'sku': `PROD-${product.id}`,
+      'mpn': product.specifications?.Model || `MPN-${product.id}`,
+      'brand': {
+        '@type': 'Brand',
+        'name': product.specifications?.Brand || product.supplier.name
+      },
+      'offers': {
+        '@type': 'Offer',
+        'url': productUrl,
+        'priceCurrency': 'INR',
+        'price': product.price,
+        'priceValidUntil': new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+        'itemCondition': 'https://schema.org/NewCondition',
+        'availability': product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        'seller': {
+          '@type': 'Organization',
+          'name': product.supplier.name
+        }
+      },
+      'aggregateRating': {
+        '@type': 'AggregateRating',
+        'ratingValue': product.rating,
+        'reviewCount': product.reviews,
+        'bestRating': 5,
+        'worstRating': 1
+      }
+    }
+
+    // Breadcrumb structured data
+    const breadcrumbData = {
+      '@context': 'https://schema.org/',
+      '@type': 'BreadcrumbList',
+      'itemListElement': [
+        {
+          '@type': 'ListItem',
+          'position': 1,
+          'name': 'Home',
+          'item': siteUrl
+        },
+        {
+          '@type': 'ListItem',
+          'position': 2,
+          'name': 'Products',
+          'item': `${siteUrl}/products`
+        },
+        {
+          '@type': 'ListItem',
+          'position': 3,
+          'name': product.name,
+          'item': productUrl
+        }
+      ]
+    }
+
+    return {
+      title: `${product.name} | Buy in Bulk | ${product.supplier.name}`,
+      metaDescription,
+      keywords,
+      productUrl,
+      imageUrl,
+      structuredData,
+      breadcrumbData
+    }
+  }
+
+  const seoData = generateSEOData()
 
   // Show toast notification
   const showToast = (type, message, icon = '✓') => {
     setToast({ show: true, type, message, icon })
     setTimeout(() => setToast({ show: false, type: '', message: '', icon: '' }), 3000)
+  }
+
+  // Toggle category expand/collapse
+  const toggleCategory = (categoryId) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [categoryId]: !prev[categoryId]
+    }))
   }
 
   useEffect(() => {
@@ -36,23 +145,40 @@ function ProductDetails() {
         if (result.success && result.data?.data) {
           const p = result.data.data
           
-          // Parse specifications safely
-          let parsedSpecs = {
-            'Brand': p.brand || 'N/A',
-            'Model': p.model || 'N/A',
-            'Unit': p.unit || 'piece',
-            'Origin': p.origin || 'N/A'
+          // Build specifications from classification-based data
+          let parsedSpecs = {}
+          
+          // Add basic product info
+          if (p.brand) parsedSpecs['Brand'] = p.brand
+          if (p.model) parsedSpecs['Model'] = p.model
+          parsedSpecs['Unit'] = p.unit || 'piece'
+          if (p.origin) parsedSpecs['Origin'] = p.origin
+          
+          // Add classification-based specifications
+          if (p.classifications && p.classifications.length > 0) {
+            p.classifications.forEach(classification => {
+              if (classification.attributes && classification.attributes.length > 0) {
+                classification.attributes.forEach(attr => {
+                  if (attr.value || attr.attributeValue) {
+                    const value = attr.value || attr.attributeValue
+                    const displayName = attr.displayName || attr.name
+                    const unit = attr.unit
+                    
+                    parsedSpecs[displayName] = unit ? `${value} ${unit}` : value
+                  }
+                })
+              }
+            })
           }
           
-          if (p.specifications) {
+          // Fallback: if no classifications and old specifications exist
+          if (Object.keys(parsedSpecs).length <= 4 && p.specifications) {
             try {
-              // Try to parse as JSON
               const parsed = JSON.parse(p.specifications)
               if (typeof parsed === 'object' && parsed !== null) {
-                parsedSpecs = parsed
+                parsedSpecs = { ...parsedSpecs, ...parsed }
               }
             } catch (e) {
-              // If not valid JSON, use as description
               console.log('Specifications is not JSON:', p.specifications)
             }
           }
@@ -83,6 +209,7 @@ function ProductDetails() {
             },
             description: p.description || 'No description available',
             specifications: parsedSpecs,
+            classificationSpecs: p.classifications || [],  // Keep raw classifications for future use
             features: [
               `Minimum order quantity: ${p.moq || 1} units`,
               `Lead time: ${p.leadTimeDays || 7}-15 days`,
@@ -173,137 +300,323 @@ function ProductDetails() {
 
   return (
     <div className="product-details-page">
+      {/* SEO Meta Tags */}
+      {seoData && (
+        <Helmet>
+          {/* Basic Meta Tags */}
+          <title>{seoData.title}</title>
+          <meta name="description" content={seoData.metaDescription} />
+          <meta name="keywords" content={seoData.keywords} />
+          <link rel="canonical" href={seoData.productUrl} />
+          
+          {/* Open Graph Tags for Social Media */}
+          <meta property="og:type" content="product" />
+          <meta property="og:title" content={seoData.title} />
+          <meta property="og:description" content={seoData.metaDescription} />
+          <meta property="og:image" content={seoData.imageUrl} />
+          <meta property="og:url" content={seoData.productUrl} />
+          <meta property="og:site_name" content="B2B Marketplace" />
+          <meta property="product:price:amount" content={product.price} />
+          <meta property="product:price:currency" content="INR" />
+          <meta property="product:availability" content={product.stock > 0 ? 'in stock' : 'out of stock'} />
+          
+          {/* Twitter Card Tags */}
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={seoData.title} />
+          <meta name="twitter:description" content={seoData.metaDescription} />
+          <meta name="twitter:image" content={seoData.imageUrl} />
+          
+          {/* Structured Data - Product Schema */}
+          <script type="application/ld+json">
+            {JSON.stringify(seoData.structuredData)}
+          </script>
+          
+          {/* Structured Data - Breadcrumb Schema */}
+          <script type="application/ld+json">
+            {JSON.stringify(seoData.breadcrumbData)}
+          </script>
+        </Helmet>
+      )}
+
+      {/* Breadcrumb Navigation */}
+      <nav className="breadcrumb" aria-label="Breadcrumb">
+        <ol itemScope itemType="https://schema.org/BreadcrumbList">
+          <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+            <Link to="/" itemProp="item">
+              <span itemProp="name">Home</span>
+            </Link>
+            <meta itemProp="position" content="1" />
+          </li>
+          <li className="breadcrumb-separator" aria-hidden="true">›</li>
+          <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+            <Link to="/products" itemProp="item">
+              <span itemProp="name">Products</span>
+            </Link>
+            <meta itemProp="position" content="2" />
+          </li>
+          <li className="breadcrumb-separator" aria-hidden="true">›</li>
+          <li itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="active">
+            <span itemProp="name">{product?.name}</span>
+            <meta itemProp="position" content="3" />
+          </li>
+        </ol>
+      </nav>
+
       {/* Toast Notification */}
       {toast.show && (
-        <div className={`product-toast ${toast.type}`}>
-          <span className="toast-icon">{toast.icon}</span>
+        <div className={`product-toast ${toast.type}`} role="alert" aria-live="polite">
+          <span className="toast-icon" aria-hidden="true">{toast.icon}</span>
           <span className="toast-message">{toast.message}</span>
-          <button className="toast-close" onClick={() => setToast({ show: false })}>×</button>
+          <button className="toast-close" onClick={() => setToast({ show: false })} aria-label="Close notification">×</button>
         </div>
       )}
 
-      <div className="product-container">
+      <article className="product-container" itemScope itemType="https://schema.org/Product">
+        {/* Hidden meta tags for Schema.org */}
+        <meta itemProp="sku" content={`PROD-${product.id}`} />
+        <meta itemProp="productID" content={product.id} />
+        <meta itemProp="name" content={product.name} />
+        
         {/* Image Gallery */}
         <div className="product-gallery">
-          <div className="main-image">
-            <img src={product.images[selectedImage]} alt={product.name} />
-          </div>
-          <div className="thumbnail-gallery">
-            {product.images.map((img, index) => (
-              <img
-                key={index}
-                src={img}
-                alt={`${product.name} ${index + 1}`}
-                className={selectedImage === index ? 'active' : ''}
-                onClick={() => setSelectedImage(index)}
+          <div className="main-image-wrapper">
+            <figure className="main-image" itemProp="image">
+              <img 
+                src={product.images[selectedImage]} 
+                alt={`${product.name} - Main product image`}
+                itemProp="image"
+                loading="eager"
               />
+              <div className="image-badge" aria-label={product.stock > 0 ? 'In Stock' : 'Out of Stock'}>
+                {product.stock > 0 ? (
+                  <span className="in-stock-badge">In Stock</span>
+                ) : (
+                  <span className="out-stock-badge">Out of Stock</span>
+                )}
+              </div>
+            </figure>
+          </div>
+          <div className="thumbnail-gallery" role="list" aria-label="Product image gallery">
+            {product.images.map((img, index) => (
+              <div 
+                key={index} 
+                className={`thumbnail-wrapper ${selectedImage === index ? 'active' : ''}`}
+                role="listitem"
+              >
+                <img
+                  src={img}
+                  alt={`${product.name} - View ${index + 1}`}
+                  onClick={() => setSelectedImage(index)}
+                  loading="lazy"
+                />
+              </div>
             ))}
           </div>
         </div>
 
         {/* Product Info */}
         <div className="product-info">
-          <h1>{product.name}</h1>
+          <div className="product-category-badge">
+            <span className="category-tag">Electronics</span>
+          </div>
+          
+          <h1 className="product-title" itemProp="name">{product.name}</h1>
+          
           <div className="product-meta">
-            <div className="rating">
-              <span className="stars">⭐ {product.rating}</span>
-              <span className="reviews">({product.reviews} reviews)</span>
+            <div className="rating-wrapper" itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
+              <div className="stars-display" aria-label={`Rated ${product.rating} out of 5 stars`}>
+                {[...Array(5)].map((_, i) => (
+                  <span key={i} className={i < Math.floor(product.rating) ? 'star filled' : 'star'} aria-hidden="true">★</span>
+                ))}
+              </div>
+              <span className="rating-number" itemProp="ratingValue">{product.rating}</span>
+              <span className="reviews-count">(<span itemProp="reviewCount">{product.reviews}</span> reviews)</span>
+              <meta itemProp="bestRating" content="5" />
+              <meta itemProp="worstRating" content="1" />
             </div>
-            <span className="product-id">Product ID: #{product.id}</span>
+            <span className="product-id">SKU: #{product.id}</span>
           </div>
 
-          <div className="price-section">
-            <div className="price">₹{product.price?.toLocaleString('en-IN')}</div>
-            <div className="moq">MOQ: {product.moq} units</div>
+          <div className="price-section" itemProp="offers" itemScope itemType="https://schema.org/Offer">
+            <meta itemProp="priceCurrency" content="INR" />
+            <meta itemProp="price" content={product.price} />
+            <meta itemProp="availability" content={product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'} />
+            <link itemProp="url" href={window.location.href} />
+            
+            <div className="price-wrapper">
+              <span className="price-label">Price</span>
+              <div className="price">₹{product.price?.toLocaleString('en-IN')}</div>
+              <span className="price-unit">per unit</span>
+            </div>
+            <div className="moq-info">
+              <span className="moq-label">Minimum Order</span>
+              <span className="moq-value">{product.moq} units</span>
+            </div>
+            
+            <div itemProp="seller" itemScope itemType="https://schema.org/Organization" style={{ display: 'none' }}>
+              <span itemProp="name">{product.supplier.name}</span>
+            </div>
           </div>
 
-          <div className="supplier-info">
-            <Link to={`/supplier/${product.supplier.id}`} className="supplier-link">
-              <div className="supplier-badge">
-                {product.supplier.verified && <span className="verified">✓ Verified</span>}
-                <strong>{product.supplier.name}</strong>
+          <div className="supplier-card">
+            <div className="supplier-header">
+              <div className="supplier-avatar" aria-hidden="true">
+                <span>{product.supplier.name.charAt(0)}</span>
+              </div>
+              <div className="supplier-info-wrapper">
+                <Link to={`/supplier/${product.supplier.id}`} className="supplier-name">
+                  {product.supplier.name}
+                  {product.supplier.verified && <span className="verified-icon" aria-label="Verified Supplier">✓</span>}
+                </Link>
                 {product.supplier.type && (
-                  <span className={`supplier-type-label ${product.supplier.type.toLowerCase()}`}>
-                    {product.supplier.type.charAt(0).toUpperCase() + product.supplier.type.slice(1)}
+                  <span className={`supplier-type-badge ${product.supplier.type.toLowerCase()}`}>
+                    {product.supplier.type}
                   </span>
                 )}
               </div>
-            </Link>
-            <div className="supplier-details">
-              <span>⭐ {product.supplier.rating}</span>
-              <span>📍 {product.supplier.location}</span>
-              <span>⏱️ Response: {product.supplier.responseTime}</span>
+            </div>
+            <div className="supplier-stats" role="list" aria-label="Supplier statistics">
+              <div className="stat-item" role="listitem">
+                <span className="stat-icon" aria-hidden="true">⭐</span>
+                <span className="stat-value">{product.supplier.rating} Rating</span>
+              </div>
+              <div className="stat-divider" aria-hidden="true"></div>
+              <div className="stat-item" role="listitem">
+                <span className="stat-icon" aria-hidden="true">📍</span>
+                <span className="stat-value">{product.supplier.location}</span>
+              </div>
+              <div className="stat-divider" aria-hidden="true"></div>
+              <div className="stat-item" role="listitem">
+                <span className="stat-icon" aria-hidden="true">⏱️</span>
+                <span className="stat-value">{product.supplier.responseTime}</span>
+              </div>
             </div>
           </div>
 
-          <div className="quantity-section">
-            <label>Quantity:</label>
-            <div className="quantity-controls">
-              <button onClick={() => setQuantity(Math.max(product.moq, quantity - 10))}>-</button>
+          <div className="size-selector-section">
+            <label htmlFor="quantity-input" className="section-label">Quantity</label>
+            <div className="quantity-controls" role="group" aria-label="Quantity selector">
+              <button 
+                className="qty-btn"
+                onClick={() => setQuantity(Math.max(product.moq, quantity - 10))}
+                disabled={quantity <= product.moq}
+                aria-label="Decrease quantity"
+              >
+                −
+              </button>
               <input
+                id="quantity-input"
                 type="number"
+                className="qty-input"
                 value={quantity}
                 onChange={(e) => setQuantity(Math.max(product.moq, parseInt(e.target.value) || product.moq))}
                 min={product.moq}
+                aria-label="Product quantity"
               />
-              <button onClick={() => setQuantity(quantity + 10)}>+</button>
+              <button 
+                className="qty-btn"
+                onClick={() => setQuantity(quantity + 10)}
+                aria-label="Increase quantity"
+              >
+                +
+              </button>
             </div>
-            <span className="stock-info">
-              {product.stock > 0 ? `${product.stock} units available` : 'Out of stock'}
-            </span>
+            <div className="stock-indicator" role="status" aria-live="polite">
+              <span className={product.stock > 0 ? 'stock-available' : 'stock-unavailable'}>
+                {product.stock > 0 ? `${product.stock} units available` : 'Currently unavailable'}
+              </span>
+            </div>
           </div>
 
           <div className="action-buttons">
             {isBuyer && (
               <>
-                <button className="btn-primary" onClick={handleAddToCart}>
+                <button className="btn-add-cart" onClick={handleAddToCart} aria-label="Add product to cart">
+                  <span className="btn-icon" aria-hidden="true">🛒</span>
                   Add to Cart
                 </button>
-                <button className="btn-quote" onClick={handleRequestQuote}>
-                  📋 Request Quote
+                <button className="btn-quote" onClick={handleRequestQuote} aria-label="Request price quote">
+                  <span className="btn-icon" aria-hidden="true">📋</span>
+                  Request Quote
                 </button>
               </>
             )}
             {!isBuyer && user && (
-              <div className="supplier-notice">
+              <div className="supplier-notice" role="alert">
                 <span>⚠️ Suppliers cannot purchase products</span>
               </div>
             )}
-            <button className="btn-secondary" onClick={handleContactSupplier}>
-              {isBuyer ? 'Contact Supplier' : 'Message Buyer/Supplier'}
-            </button>
           </div>
 
-          <div className="shipping-info">
-            <h3>Shipping Information</h3>
-            <p><strong>Lead Time:</strong> {product.shippingInfo.leadTime}</p>
-            <p><strong>Methods:</strong> {product.shippingInfo.shippingMethods.join(', ')}</p>
+          <button className="btn-contact" onClick={handleContactSupplier} aria-label="Contact supplier">
+            <span className="btn-icon" aria-hidden="true">💬</span>
+            {isBuyer ? 'Contact Supplier' : 'Message Buyer/Supplier'}
+          </button>
+
+          <div className="shipping-details-card">
+            <h2 className="card-title">
+              <span className="title-icon" aria-hidden="true">🚚</span>
+              Shipping Information
+            </h2>
+            <div className="shipping-items" role="list">
+              <div className="shipping-item" role="listitem">
+                <span className="item-icon" aria-hidden="true">📦</span>
+                <div className="item-content">
+                  <span className="item-label">Lead Time</span>
+                  <span className="item-value">{product.shippingInfo.leadTime}</span>
+                </div>
+              </div>
+              <div className="shipping-item" role="listitem">
+                <span className="item-icon" aria-hidden="true">✈️</span>
+                <div className="item-content">
+                  <span className="item-label">Methods</span>
+                  <span className="item-value">{product.shippingInfo.shippingMethods.join(', ')}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </article>
 
       {/* Product Details Tabs */}
-      <div className="product-tabs">
-        <div className="tab-headers">
+      <section className="product-tabs" aria-labelledby="product-tabs-heading">
+        <h2 id="product-tabs-heading" className="visually-hidden">Product Details</h2>
+        <div className="tab-headers" role="tablist" aria-label="Product information tabs">
           <button
+            role="tab"
+            aria-selected={activeTab === 'description'}
+            aria-controls="description-panel"
+            id="description-tab"
             className={activeTab === 'description' ? 'active' : ''}
             onClick={() => setActiveTab('description')}
           >
             Description
           </button>
           <button
+            role="tab"
+            aria-selected={activeTab === 'specifications'}
+            aria-controls="specifications-panel"
+            id="specifications-tab"
             className={activeTab === 'specifications' ? 'active' : ''}
             onClick={() => setActiveTab('specifications')}
           >
             Specifications
           </button>
           <button
+            role="tab"
+            aria-selected={activeTab === 'compliance'}
+            aria-controls="compliance-panel"
+            id="compliance-tab"
             className={activeTab === 'compliance' ? 'active' : ''}
             onClick={() => setActiveTab('compliance')}
           >
             Compliance Info
           </button>
           <button
+            role="tab"
+            aria-selected={activeTab === 'reviews'}
+            aria-controls="reviews-panel"
+            id="reviews-tab"
             className={activeTab === 'reviews' ? 'active' : ''}
             onClick={() => setActiveTab('reviews')}
           >
@@ -313,7 +626,13 @@ function ProductDetails() {
 
         <div className="tab-content">
           {activeTab === 'description' && (
-            <div className="description-tab">
+            <div 
+              role="tabpanel" 
+              id="description-panel" 
+              aria-labelledby="description-tab"
+              className="description-tab"
+              itemProp="description"
+            >
               <p>{product.description}</p>
               <h3>Key Features:</h3>
               <ul>
@@ -325,22 +644,123 @@ function ProductDetails() {
           )}
 
           {activeTab === 'specifications' && (
-            <div className="specifications-tab">
-              <table>
-                <tbody>
-                  {Object.entries(product.specifications).map(([key, value]) => (
-                    <tr key={key}>
-                      <td><strong>{key}</strong></td>
-                      <td>{value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div 
+              role="tabpanel" 
+              id="specifications-panel" 
+              aria-labelledby="specifications-tab"
+              className="specifications-tab"
+            >
+              {/* Show classification-based specs if available */}
+              {product.classificationSpecs && product.classificationSpecs.length > 0 ? (
+                <>
+                  {product.classificationSpecs.map(classification => {
+                    const isExpanded = expandedCategories[classification.id] !== false; // Default to expanded
+                    return (
+                      <div key={classification.id} className={`spec-category ${isExpanded ? 'expanded' : 'collapsed'}`}>
+                        <h3 
+                          className="spec-category-title" 
+                          onClick={() => toggleCategory(classification.id)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <span className="expand-icon">{isExpanded ? '▼' : '▶'}</span>
+                          {classification.displayName}
+                          <span className="attribute-count">
+                            {classification.attributes?.filter(attr => attr.value || attr.attributeValue).length || 0} items
+                          </span>
+                        </h3>
+                        {isExpanded && (
+                          <table className="spec-table">
+                            <tbody>
+                              {classification.attributes && classification.attributes
+                                .filter(attr => attr.value || attr.attributeValue)
+                                .map(attr => (
+                                  <tr key={attr.id}>
+                                    <td><strong>{attr.displayName || attr.name}</strong></td>
+                                    <td>
+                                      {attr.value || attr.attributeValue}
+                                      {attr.unit && <span className="spec-unit"> {attr.unit}</span>}
+                                    </td>
+                                  </tr>
+                                ))
+                              }
+                            </tbody>
+                          </table>
+                        )}
+                      </div>
+                    );
+                  })}
+                
+                  
+                  {/* Show basic info if not in classifications */}
+                  {(product.specifications.Brand || product.specifications.Model || product.specifications.Origin) && (() => {
+                    const isExpanded = expandedCategories['product-info'] !== false;
+                    return (
+                      <div className={`spec-category ${isExpanded ? 'expanded' : 'collapsed'}`}>
+                        <h3 
+                          className="spec-category-title" 
+                          onClick={() => toggleCategory('product-info')}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <span className="expand-icon">{isExpanded ? '▼' : '▶'}</span>
+                          Product Information
+                        </h3>
+                        {isExpanded && (
+                          <table className="spec-table">
+                        <tbody>
+                          {product.specifications.Brand && product.specifications.Brand !== 'N/A' && (
+                            <tr>
+                              <td><strong>Brand</strong></td>
+                              <td>{product.specifications.Brand}</td>
+                            </tr>
+                          )}
+                          {product.specifications.Model && product.specifications.Model !== 'N/A' && (
+                            <tr>
+                              <td><strong>Model</strong></td>
+                              <td>{product.specifications.Model}</td>
+                            </tr>
+                          )}
+                          {product.specifications.Unit && (
+                            <tr>
+                              <td><strong>Unit</strong></td>
+                              <td>{product.specifications.Unit}</td>
+                            </tr>
+                          )}
+                          {product.specifications.Origin && product.specifications.Origin !== 'N/A' && (
+                            <tr>
+                              <td><strong>Origin</strong></td>
+                              <td>{product.specifications.Origin}</td>
+                            </tr>
+                          )}
+                        </tbody>
+                          </table>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </>
+              ) : (
+                /* Fallback: show all specifications in single table */
+                <table>
+                  <tbody>
+                    {Object.entries(product.specifications).map(([key, value]) => (
+                      <tr key={key}>
+                        <td><strong>{key}</strong></td>
+                        <td>{value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           )}
 
           {activeTab === 'compliance' && (
-            <div className="compliance-tab">
+            <div 
+              role="tabpanel" 
+              id="compliance-panel" 
+              aria-labelledby="compliance-tab"
+              className="compliance-tab"
+            >
               <div className="compliance-section">
                 <h3>🇮🇳 Country of Origin</h3>
                 <p className="compliance-value">{product.countryOfOrigin || product.origin || 'Not specified'}</p>
@@ -427,7 +847,12 @@ function ProductDetails() {
           )}
 
           {activeTab === 'reviews' && (
-            <div className="reviews-tab">
+            <div 
+              role="tabpanel" 
+              id="reviews-panel" 
+              aria-labelledby="reviews-tab"
+              className="reviews-tab"
+            >
               <div className="review-summary">
                 <div className="average-rating">
                   <h2>{product.rating}</h2>

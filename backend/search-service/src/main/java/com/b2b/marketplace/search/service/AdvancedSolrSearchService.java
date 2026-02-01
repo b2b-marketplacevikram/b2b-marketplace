@@ -31,7 +31,11 @@ import java.util.stream.Collectors;
 public class AdvancedSolrSearchService {
 
     private final SolrClient solrClient;
-    private static final String COLLECTION = "products";
+    
+    @org.springframework.beans.factory.annotation.Value("${spring.data.solr.collection:b2b_products}")
+    private String collectionName;
+    
+    private static final String COLLECTION = "products"; // Deprecated - use collectionName instead
 
     /**
      * Advanced search with facets, highlighting, spell check, and more
@@ -43,7 +47,7 @@ public class AdvancedSolrSearchService {
 
         try {
             SolrQuery query = buildAdvancedQuery(request);
-            QueryResponse solrResponse = solrClient.query(COLLECTION, query);
+            QueryResponse solrResponse = solrClient.query(collectionName, query);
 
             // Map results
             List<ProductSearchResult> results = mapResults(solrResponse.getResults());
@@ -109,7 +113,7 @@ public class AdvancedSolrSearchService {
             query.set("defType", "edismax");
             query.set("qf", "name^3 categoryName^2 tags supplierName");
 
-            QueryResponse solrResponse = solrClient.query(COLLECTION, query);
+            QueryResponse solrResponse = solrClient.query(collectionName, query);
 
             List<AutocompleteResponse.Suggestion> suggestions = solrResponse.getResults().stream()
                     .map(doc -> {
@@ -153,7 +157,7 @@ public class AdvancedSolrSearchService {
             solrQuery.setFields("name");
             solrQuery.addFilterQuery("isActive:true");
 
-            QueryResponse response = solrClient.query(COLLECTION, solrQuery);
+            QueryResponse response = solrClient.query(collectionName, solrQuery);
 
             suggestions = response.getResults().stream()
                     .map(doc -> (String) doc.getFieldValue("name"))
@@ -185,7 +189,7 @@ public class AdvancedSolrSearchService {
             query.addFilterQuery("isActive:true");
             query.addFilterQuery("-productId:" + productId); // Exclude the source product
 
-            QueryResponse response = solrClient.query(COLLECTION, query);
+            QueryResponse response = solrClient.query(collectionName, query);
             results = mapResults(response.getResults());
 
             log.debug("Found {} similar products for productId {}", results.size(), productId);
@@ -217,7 +221,7 @@ public class AdvancedSolrSearchService {
             query.addSort("reviewCount", SolrQuery.ORDER.desc);
             query.setRows(limit);
 
-            QueryResponse response = solrClient.query(COLLECTION, query);
+            QueryResponse response = solrClient.query(collectionName, query);
             results = mapResults(response.getResults());
 
         } catch (Exception e) {
@@ -249,7 +253,7 @@ public class AdvancedSolrSearchService {
             solrQuery.add("f.price.facet.range.end", "10000");
             solrQuery.add("f.price.facet.range.gap", "500");
 
-            QueryResponse response = solrClient.query(COLLECTION, solrQuery);
+            QueryResponse response = solrClient.query(collectionName, solrQuery);
 
             // Process regular facets
             if (response.getFacetFields() != null) {
@@ -277,8 +281,8 @@ public class AdvancedSolrSearchService {
                     .map(this::convertToSolrDocument)
                     .collect(Collectors.toList());
 
-            solrClient.add(COLLECTION, docs);
-            solrClient.commit(COLLECTION);
+            solrClient.add(collectionName, docs);
+            solrClient.commit(collectionName);
 
             log.info("Bulk indexed {} products", products.size());
         } catch (Exception e) {
@@ -291,8 +295,8 @@ public class AdvancedSolrSearchService {
      */
     public void deleteAll() {
         try {
-            solrClient.deleteByQuery(COLLECTION, "*:*");
-            solrClient.commit(COLLECTION);
+            solrClient.deleteByQuery(collectionName, "*:*");
+            solrClient.commit(collectionName);
             log.info("Deleted all documents from index");
         } catch (Exception e) {
             log.error("Error deleting all: {}", e.getMessage());
@@ -305,8 +309,8 @@ public class AdvancedSolrSearchService {
     public void reindexProduct(ProductDocument product) {
         try {
             SolrInputDocument doc = convertToSolrDocument(product);
-            solrClient.add(COLLECTION, doc);
-            solrClient.commit(COLLECTION);
+            solrClient.add(collectionName, doc);
+            solrClient.commit(collectionName);
             log.debug("Reindexed product: {}", product.getProductId());
         } catch (Exception e) {
             log.error("Error reindexing product {}: {}", product.getProductId(), e.getMessage());
@@ -560,9 +564,9 @@ public class AdvancedSolrSearchService {
 
         result.setId(doc.getFieldValue("productId") != null ?
                 ((Number) doc.getFieldValue("productId")).longValue() : null);
-        result.setName((String) doc.getFieldValue("name"));
-        result.setDescription((String) doc.getFieldValue("description"));
-        result.setSku((String) doc.getFieldValue("sku"));
+        result.setName(getStringValue(doc, "name"));
+        result.setDescription(getStringValue(doc, "description"));
+        result.setSku(getStringValue(doc, "sku"));
 
         if (doc.getFieldValue("price") != null) {
             result.setPrice(new BigDecimal(doc.getFieldValue("price").toString()));
@@ -574,19 +578,17 @@ public class AdvancedSolrSearchService {
                 ((Number) doc.getFieldValue("stockQuantity")).intValue() : null);
         result.setCategoryId(doc.getFieldValue("categoryId") != null ?
                 ((Number) doc.getFieldValue("categoryId")).longValue() : null);
-        result.setCategoryName((String) doc.getFieldValue("categoryName"));
+        result.setCategoryName(getStringValue(doc, "categoryName"));
         result.setSupplierId(doc.getFieldValue("supplierId") != null ?
                 ((Number) doc.getFieldValue("supplierId")).longValue() : null);
-        result.setSupplierName((String) doc.getFieldValue("supplierName"));
-        result.setOrigin((String) doc.getFieldValue("origin"));
+        result.setSupplierName(getStringValue(doc, "supplierName"));
+        result.setOrigin(getStringValue(doc, "origin"));
         result.setRating(doc.getFieldValue("rating") != null ?
                 Double.valueOf(doc.getFieldValue("rating").toString()) : null);
         result.setReviewCount(doc.getFieldValue("reviewCount") != null ?
                 Integer.valueOf(doc.getFieldValue("reviewCount").toString()) : null);
 
-        @SuppressWarnings("unchecked")
-        List<String> tags = (List<String>) doc.getFieldValue("tags");
-        result.setTags(tags);
+        result.setTags(getListValue(doc, "tags"));
 
         result.setIsFeatured(doc.getFieldValue("isFeatured") != null ?
                 Boolean.valueOf(doc.getFieldValue("isFeatured").toString()) : null);
@@ -595,6 +597,43 @@ public class AdvancedSolrSearchService {
                 ((Number) doc.getFieldValue("score")).doubleValue() : null);
 
         return result;
+    }
+    
+    /**
+     * Safely extract string value from SolrDocument, handling both String and List types
+     */
+    private String getStringValue(SolrDocument doc, String fieldName) {
+        Object value = doc.getFieldValue(fieldName);
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof String) {
+            return (String) value;
+        }
+        if (value instanceof List) {
+            @SuppressWarnings("unchecked")
+            List<String> list = (List<String>) value;
+            return list.isEmpty() ? null : list.get(0);
+        }
+        return value.toString();
+    }
+    
+    /**
+     * Safely extract list value from SolrDocument
+     */
+    @SuppressWarnings("unchecked")
+    private List<String> getListValue(SolrDocument doc, String fieldName) {
+        Object value = doc.getFieldValue(fieldName);
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof List) {
+            return (List<String>) value;
+        }
+        if (value instanceof String) {
+            return Collections.singletonList((String) value);
+        }
+        return null;
     }
 
     private List<FacetResult> processFacets(QueryResponse response) {

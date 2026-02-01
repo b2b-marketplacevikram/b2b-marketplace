@@ -11,4 +11,5 @@ public class CategoryRequest {
     private Boolean isActive = true;
     private Integer displayOrder = 0;
     private String icon;
+    private String imageUrl;
 }

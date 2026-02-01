@@ -8,6 +8,7 @@ import com.b2b.marketplace.cart.repository.CartItemRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
@@ -66,7 +67,17 @@ public class CartService {
             return buyerId;
         }
         
-        // If not found, create a new buyer record for this user
+        // If not found, create a new buyer record using a separate transaction
+        return createBuyerForUser(userId);
+    }
+    
+    /**
+     * Creates a new buyer record for the given user ID in a new transaction.
+     * Uses REQUIRES_NEW propagation to ensure this operation completes in its own transaction,
+     * regardless of whether the caller is in a read-only or write transaction.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private Long createBuyerForUser(Long userId) {
         log.warn("No buyer found for user ID {}, creating new buyer record", userId);
         Buyer newBuyer = new Buyer();
         newBuyer.setUserId(userId);

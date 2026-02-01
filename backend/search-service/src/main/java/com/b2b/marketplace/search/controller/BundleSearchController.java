@@ -17,7 +17,6 @@ import java.util.Collections;
 @RestController
 @RequestMapping("/api/search/bundles")
 @Slf4j
-@CrossOrigin(origins = "*")
 public class BundleSearchController {
     
     private final BundleSolrSearchService bundleSolrSearchService;

@@ -14,7 +14,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/search/admin")
 @Slf4j
-@CrossOrigin(origins = "*")
 public class SolrAdminController {
 
     private final SolrHealthChecker solrHealthChecker;

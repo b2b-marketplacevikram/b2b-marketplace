@@ -19,7 +19,11 @@ import java.util.Map;
 public class SolrHealthChecker {
 
     private final SolrClient solrClient;
-    private static final String COLLECTION = "products";
+    
+    @org.springframework.beans.factory.annotation.Value("${spring.data.solr.collection:b2b_products}")
+    private String collectionName;
+    
+    private static final String COLLECTION = "products"; // Deprecated - use collectionName instead
 
     /**
      * Check if Solr is available and the products collection exists
@@ -33,14 +37,14 @@ public class SolrHealthChecker {
             long startTime = System.currentTimeMillis();
             SolrQuery query = new SolrQuery("*:*");
             query.setRows(0);
-            QueryResponse response = solrClient.query(COLLECTION, query);
+            QueryResponse response = solrClient.query(collectionName, query);
             long responseTime = System.currentTimeMillis() - startTime;
 
             health.put("status", "UP");
             health.put("solrAvailable", true);
             health.put("responseTimeMs", responseTime);
             health.put("numDocs", response.getResults().getNumFound());
-            health.put("collection", COLLECTION);
+            health.put("collection", collectionName);
 
             log.debug("Solr health check passed. {} docs in index, {}ms response time",
                     response.getResults().getNumFound(), responseTime);
@@ -65,12 +69,12 @@ public class SolrHealthChecker {
             // Get total document count
             SolrQuery countQuery = new SolrQuery("*:*");
             countQuery.setRows(0);
-            QueryResponse response = solrClient.query(COLLECTION, countQuery);
+            QueryResponse response = solrClient.query(collectionName, countQuery);
             stats.put("totalDocuments", response.getResults().getNumFound());
 
             // Get active products count
             countQuery.addFilterQuery("isActive:true");
-            response = solrClient.query(COLLECTION, countQuery);
+            response = solrClient.query(collectionName, countQuery);
             stats.put("activeProducts", response.getResults().getNumFound());
 
             // Get featured products count
@@ -78,7 +82,7 @@ public class SolrHealthChecker {
             countQuery.setRows(0);
             countQuery.addFilterQuery("isFeatured:true");
             countQuery.addFilterQuery("isActive:true");
-            response = solrClient.query(COLLECTION, countQuery);
+            response = solrClient.query(collectionName, countQuery);
             stats.put("featuredProducts", response.getResults().getNumFound());
 
             // Get category count using faceting
@@ -87,7 +91,7 @@ public class SolrHealthChecker {
             facetQuery.setFacet(true);
             facetQuery.addFacetField("categoryName");
             facetQuery.setFacetMinCount(1);
-            response = solrClient.query(COLLECTION, facetQuery);
+            response = solrClient.query(collectionName, facetQuery);
             if (response.getFacetField("categoryName") != null) {
                 stats.put("categoryCount", response.getFacetField("categoryName").getValueCount());
             }
@@ -98,7 +102,7 @@ public class SolrHealthChecker {
             facetQuery.setFacet(true);
             facetQuery.addFacetField("supplierName");
             facetQuery.setFacetMinCount(1);
-            response = solrClient.query(COLLECTION, facetQuery);
+            response = solrClient.query(collectionName, facetQuery);
             if (response.getFacetField("supplierName") != null) {
                 stats.put("supplierCount", response.getFacetField("supplierName").getValueCount());
             }
@@ -121,7 +125,7 @@ public class SolrHealthChecker {
         try {
             SolrQuery query = new SolrQuery("productId:" + productId);
             query.setRows(0);
-            QueryResponse response = solrClient.query(COLLECTION, query);
+            QueryResponse response = solrClient.query(collectionName, query);
             return response.getResults().getNumFound() > 0;
         } catch (Exception e) {
             log.error("Error checking product existence: {}", e.getMessage());

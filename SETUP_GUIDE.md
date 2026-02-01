@@ -413,3 +413,8 @@ Your B2B marketplace is ready with:
 **Start developing by**: Testing the login/register functionality, then gradually implementing the remaining services (Product, Order, Payment).
 
 For questions or issues, refer to BACKEND_SETUP.md or check the troubleshooting section above.
+
+
+Manual Steps :
+
+http://localhost:8983/solr/admin/cores?action=CREATE&name=products&configSet=_default

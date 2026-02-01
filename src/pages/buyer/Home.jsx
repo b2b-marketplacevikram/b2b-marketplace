@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import ProductCard from '../../components/ProductCard'
-import CategoryCard from '../../components/CategoryCard'
-import { productAPI, categoryAPI } from '../../services/api'
+import CategoryBrowser from '../../components/CategoryBrowser'
+import { productAPI } from '../../services/api'
 import '../../styles/Home.css'
 
 function Home() {
   const [featuredProducts, setFeaturedProducts] = useState([])
-  const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -37,27 +36,6 @@ function Home() {
           ])
         }
 
-        // Fetch categories
-        const categoriesResult = await categoryAPI.getAll()
-        if (categoriesResult.success && categoriesResult.data?.data) {
-          const cats = categoriesResult.data.data.slice(0, 6).map(c => ({
-            id: c.id,
-            name: c.name,
-            icon: getCategoryIcon(c.name),
-            count: 'View products'
-          }))
-          setCategories(cats)
-        } else {
-          // Fallback categories while backend is starting
-          setCategories([
-            { id: 1, name: 'Electronics', icon: '💻', count: 'View products' },
-            { id: 2, name: 'Machinery', icon: '⚙️', count: 'View products' },
-            { id: 3, name: 'Textiles', icon: '🧵', count: 'View products' },
-            { id: 4, name: 'Construction', icon: '🏗️', count: 'View products' },
-            { id: 5, name: 'Chemicals', icon: '🧪', count: 'View products' },
-            { id: 6, name: 'Packaging', icon: '📦', count: 'View products' }
-          ])
-        }
       } catch (error) {
         console.error('Error fetching data:', error)
         // Set fallback data on error
@@ -67,14 +45,6 @@ function Home() {
           { id: 3, name: 'LED Bulbs', price: 8.99, moq: 200, image: '/images/placeholder.jpg', supplier: 'LumenTech' },
           { id: 4, name: 'LED Panel Lights', price: 35.00, moq: 30, image: '/images/placeholder.jpg', supplier: 'ProLight Systems' }
         ])
-        setCategories([
-          { id: 1, name: 'Electronics', icon: '💻', count: 'View products' },
-          { id: 2, name: 'Machinery', icon: '⚙️', count: 'View products' },
-          { id: 3, name: 'Textiles', icon: '🧵', count: 'View products' },
-          { id: 4, name: 'Construction', icon: '🏗️', count: 'View products' },
-          { id: 5, name: 'Chemicals', icon: '🧪', count: 'View products' },
-          { id: 6, name: 'Packaging', icon: '📦', count: 'View products' }
-        ])
       }
 
       setLoading(false)
@@ -82,20 +52,6 @@ function Home() {
 
     fetchData()
   }, [])
-
-  const getCategoryIcon = (name) => {
-    const icons = {
-      'Electronics': '💻',
-      'Machinery': '⚙️',
-      'Textiles': '🧵',
-      'Construction': '🏗️',
-      'Chemicals': '🧪',
-      'Packaging': '📦',
-      'Automotive': '🚗',
-      'Food': '🍎'
-    }
-    return icons[name] || '📦'
-  }
 
   return (
     <div className="home-page">
@@ -122,14 +78,7 @@ function Home() {
       </section>
 
       {/* Categories Section */}
-      <section className="categories-section">
-        <h2>Browse by Category</h2>
-        <div className="categories-grid">
-          {categories.map(category => (
-            <CategoryCard key={category.id} category={category} />
-          ))}
-        </div>
-      </section>
+      <CategoryBrowser />
 
       {/* Featured Products */}
       <section className="featured-section">
