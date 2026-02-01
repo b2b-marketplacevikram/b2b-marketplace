@@ -315,3 +315,22 @@ STRIPE_WEBHOOK_SECRET=whsec_xxxxx
 ---
 
 **Status:** ✅ All backend services are now production-ready for Railway deployment!
+
+---
+
+## 🔧 IMPORTANT: Dockerfiles Updated (Feb 1, 2026)
+
+All service Dockerfiles have been updated to work with standalone pom.xml files. The old Dockerfiles referenced parent pom and common modules that don't exist in standalone deployment.
+
+**What was fixed:**
+- ✅ Removed parent pom.xml references
+- ✅ Removed common module dependencies
+- ✅ Simplified build process to work per-service
+- ✅ Added Dockerfiles for all services
+
+**Railway will now:**
+1. Detect the Dockerfile in each service directory
+2. Build the service using Maven in a container
+3. Create a lightweight runtime image with just the JAR file
+
+Check [RAILWAY_DEPLOYMENT_STEP_BY_STEP.md](RAILWAY_DEPLOYMENT_STEP_BY_STEP.md) for detailed deployment instructions.
