@@ -881,7 +881,7 @@ function ProductDetails() {
             </div>
           )}
         </div>
-      </div>
+      </section>
 
       {/* Request Quote Modal */}
       <RequestQuoteModal
