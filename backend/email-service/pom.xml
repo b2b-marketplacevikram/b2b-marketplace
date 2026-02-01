@@ -6,15 +6,35 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.b2b.marketplace</groupId>
-        <artifactId>b2b-marketplace-parent</artifactId>
-        <version>1.0.0</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.0</version>
+        <relativePath/>
     </parent>
 
+    <groupId>com.b2b.marketplace</groupId>
     <artifactId>email-service</artifactId>
     <version>1.0.0</version>
     <name>Email Service</name>
     <description>Email notification service for B2B Marketplace</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <mysql.version>8.0.33</mysql.version>
+        <spring-cloud.version>2023.0.0</spring-cloud.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- Spring Boot Starter Web -->
@@ -39,6 +59,7 @@
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
+            <version>${mysql.version}</version>
         </dependency>
 
         <!-- Spring Data JPA -->

@@ -6,14 +6,22 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.b2b.marketplace</groupId>
-        <artifactId>b2b-marketplace-parent</artifactId>
-        <version>1.0.0</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.0</version>
+        <relativePath/>
     </parent>
 
+    <groupId>com.b2b.marketplace</groupId>
     <artifactId>cart-service</artifactId>
+    <version>1.0.0</version>
     <name>Cart Service</name>
     <description>Shopping Cart Service</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <mysql.version>8.0.33</mysql.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -27,6 +35,7 @@
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
+            <version>${mysql.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -40,6 +49,14 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>

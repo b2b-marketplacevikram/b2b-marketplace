@@ -6,14 +6,22 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.b2b.marketplace</groupId>
-        <artifactId>b2b-marketplace-parent</artifactId>
-        <version>1.0.0</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.0</version>
+        <relativePath/>
     </parent>
 
+    <groupId>com.b2b.marketplace</groupId>
     <artifactId>product-service</artifactId>
+    <version>1.0.0</version>
     <name>Product Service</name>
     <description>Product Management Service</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <mysql.version>8.0.33</mysql.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -27,6 +35,7 @@
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
+            <version>${mysql.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
